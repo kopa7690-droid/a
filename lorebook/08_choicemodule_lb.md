@@ -25,7 +25,6 @@
   • Tension: Assess the intensity of the current situation (low/medium/high/critical).
   • AllyReady: Based on nearby NPCs and party members, determine if an ally would naturally help the user. Provide the character's name if available.
   • DCRange: Suggest an appropriate difficulty range (D20 scale) for this scene based on context, stakes, and character capabilities.
-  • DifficultyMod: Recommend a difficulty modifier (-3 to +3) based on environmental factors, character state, and narrative tension.
 {{/}}
 ```
 
@@ -42,4 +41,4 @@ LightBoard 모드에서 AI에게 부여하는 태스크 지시문입니다.
 - `toggle_choicemodule_proactivity`: 능동적인 진행 제안 지시
 - `toggle_choicemodule_type=0`: `Check` 요소는 적절한 경우에만 사용
 - `toggle_ChoiceModule.korean`: 한국어 출력 요청
-- `toggle_choicemodule_auto`: AI 자동 판단 모드 활성화 시, `<Director>` 블록 출력 지시 추가. AI가 긴장도·파티원 보조 가능 여부·DC 범위·난이도 보정을 자동으로 판단합니다.
+- `toggle_choicemodule_auto`: AI 자동 판단 모드 활성화 시, `<Director>` 블록 출력 지시 추가. AI가 긴장도·파티원 보조 가능 여부·DC 범위를 자동으로 판단합니다.
