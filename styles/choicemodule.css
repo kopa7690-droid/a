@@ -1,0 +1,380 @@
+<style>
+{{#if {{? {{getglobalvar::toggle_choicemodule_minimize}}!=0}}}}
+
+.choicemodule-wrapper {
+  background-color: color-mix(in srgb, var(--risu-theme-darkbg), #0000 50%);
+  border-radius: 1rem;
+  box-shadow: 0px 0px 0.25rem color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
+  max-width: 10rem;
+  min-height: 5rem;
+  position: relative;
+}
+
+.choicemodule-wrapper:before {
+  content: "⚖️ 선택지";
+  color: var(--FontColorQuote1);
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  left: 1.5rem;
+  align-items: center;
+}
+
+.choicemodule-wrapper .choicemodule-button {
+  display: none;
+}
+
+{{#if {{? {{getglobalvar::toggle_choicemodule_minimize}}=1}}}}
+
+.choicemodule-wrapper:hover {
+  max-width: 100%;
+  box-shadow: none;
+  background-color: #0000;
+}
+
+.choicemodule-wrapper:hover:before {
+  content: "";
+}
+
+.choicemodule-wrapper:hover .choicemodule-button {
+  display: block;
+}
+
+{{/}}
+
+{{#if {{? {{getglobalvar::toggle_choicemodule_minimize}}=2}}}}
+
+
+.choicemodule-toggle:checked ~ .choicemodule-wrapper {
+  max-width: 100%;
+  box-shadow: none;
+  background-color: #0000;
+  border-radius: 0;
+  padding-top: 2rem;
+  padding-bottom: .125rem;
+}
+
+.choicemodule-toggle:checked ~ .choicemodule-wrapper:before {
+  transform: translate(-1.5rem, -2.5rem);
+  align-items: start;
+}
+
+.choicemodule-toggle:checked ~ .choicemodule-wrapper .choicemodule-button {
+  display: block;
+}
+
+{{/}}
+{{/}}
+
+.choicemodule-toggle {
+  display: none;
+}
+
+.choicemodule-button {
+  position: relative;
+  background-color: color-mix(in srgb, var(--risu-theme-darkbg), #0000 50%);
+  padding: 1rem;
+  text-align: left;
+  border: 0.125rem solid transparent;
+  border-radius: 1rem;
+  box-shadow: 0px 0px 0.25rem color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
+  transition: all 0.5s;
+}
+
+.choicemodule-button:hover {
+  border: 0.125rem solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
+  animation: choicemodule-glow 4s linear infinite;
+}
+
+@keyframes choicemodule-glow {
+  0%, 100% {
+    box-shadow: 0 0 0.5rem var(--risu-theme-textcolor);
+  }
+  50% {
+    box-shadow: 0 0 0.5rem var(--risu-theme-darkbg);
+  }
+}
+
+.choicemodule-button .choicemodule-bubble {
+  display: none;
+  position: absolute;
+  background-color: var(--risu-theme-borderc);
+  padding: 1rem;
+  border-radius: 30px;
+  box-shadow: 0 0 0.25rem color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
+  transform-origin: top right;
+  transform: translate(-4rem, 3rem);
+  z-index: 1;
+}
+
+.choicemodule-bubble2 {
+  transform: translate(-4rem, 0) !important;
+}
+
+.choicemodule-wrapper .choicemodule-button:hover:has(.x-risu-choicemodule-bubble) {
+  padding-bottom: calc(3rem + {{screen_height}} / {{screen_width}} * 3rem);
+}
+
+.choicemodule-button:hover .choicemodule-bubble {
+  display: block;
+  animation: choicemodule-fade 0.5s ease;
+}
+
+@keyframes choicemodule-fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.choicemodule-bubble:before,
+.choicemodule-bubble:after {
+	content: "";
+	border-radius: 50%;
+	display: block;
+	position: absolute;
+	background-color: var(--risu-theme-borderc);
+}
+
+.choicemodule-bubble:after {
+	top: -20px;
+	left: 30px;
+	width: 15px;
+	height: 15px;
+	box-shadow:
+	15px -10px 0 -3px var(--risu-theme-borderc);
+}
+
+.choicemodule-circle {
+	border-radius: 100%;
+	font-size: 20px;
+	margin-right: 40px;
+}
+
+.choicemodule-circle .choicemodule-bubble {
+	transform: translate(-80px, -120px);
+	width: 200px;
+}
+
+.choicemodule-circle .choicemodule-bubble:after {
+	top: 65px;
+	box-shadow:	15px 10px 0 -3px var(--risu-theme-borderc);
+}
+
+.choicemodule-menu:before {
+  content: "⚖️";
+}
+
+.choicemodule-merge:before {
+  content: "🔗";
+}
+
+.choicemodule-anchor {
+  position: absolute;
+  right: -44px;
+  padding: 0;
+  padding-left: 8px;
+  border: 2px solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
+  border-radius: 8px;
+  box-shadow: none;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.choicemodule-anchor2 {
+  top: calc(36px + 1.25em);
+  z-index: 1;
+}
+
+.choicemodule-anchor2:before {
+  margin-left: -3px;
+  font-size: 15px;
+  content: "🗑️";
+}
+
+.choicemodule-anchor > svg {
+	height: 15px;
+	width: 15px;
+}
+
+.choicemodule-anchor .choicemodule-bubble {
+  top: 0.25em;
+  left: -0.25em;
+	width: 180px;
+}
+
+.choicemodule-wrapper-lb {
+	position: relative;
+	width: 100%;
+}
+
+[data-id='lb-choicemodule'] .lb-opener {
+	background-color: color-mix(in srgb, var(--risu-theme-darkbg), #0000 50%);
+	border: 2px solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
+	box-shadow: 0px 0px .25rem color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
+	color: var(--FontColorQuote1);
+}
+
+[data-id='lb-choicemodule'] [open] .lb-opener {
+	border: 0.125rem solid transparent;
+}
+
+[data-id='lb-choicemodule'] .lb-lazyloader:hover {
+	border-radius: 8px;
+	animation: choicemodule-glow 4s linear infinite;
+}
+
+[data-id='lb-choicemodule'] .lb-collapsible {
+  overflow: visible;
+}
+
+[data-id='lb-choicemodule'] .lb-reroll {
+	background-color: color-mix(in srgb, var(--risu-theme-darkbg), #0000 50%);
+	border: 2px solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
+}
+
+/* 궁극기 게이지 바 */
+.choicemodule-ult-gauge {
+  padding: 0.5rem 1rem;
+  font-size: 0.85em;
+  font-family: monospace;
+  opacity: 0.8;
+}
+
+/* 궁극기 발동 가능 선택지 글로우 */
+.choicemodule-ult-ready {
+  border-color: gold !important;
+  animation: choicemodule-ult-glow 2s ease-in-out infinite !important;
+}
+
+@keyframes choicemodule-ult-glow {
+  0%, 100% {
+    box-shadow: 0 0 0.5rem gold;
+  }
+  50% {
+    box-shadow: 0 0 1rem gold, 0 0 2rem rgba(255, 215, 0, 0.3);
+  }
+}
+
+/* 파티원 보조 요약 블록 */
+.dicemodule-ally {
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.9em;
+  border-top: 1px solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 70%);
+  opacity: 0.85;
+}
+
+.dicemodule-table {
+  display: inline-table;
+  width: 450px;
+}
+
+.dicemodule-cube {
+    --dice-size: 100px;
+    --dice-half-size: calc(var(--dice-size) / 2);
+    --dice-double-size: calc(var(--dice-size) * -2);
+    --dice-1-10-size: calc(var(--dice-size) / -10);
+    position: relative;
+    width: var(--dice-size);
+    height: var(--dice-size);
+    transform-style: preserve-3d;
+    transition: all 2.5s linear;
+    cursor: pointer;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .dicemodule-table {
+    width: 100%;
+  }
+  .dicemodule-cube {
+    --dice-size: 20vw;
+  }
+}
+
+.dicemodule-cube:hover {
+    animation: dice-anim-rotate 2.5s infinite ease-out;
+}
+.dicemodule-throw {
+    animation: dice-anim-throw 1s ease-in;
+}
+.dicemodule-side {
+    position: absolute;
+    width: var(--dice-size);
+    height: var(--dice-size);
+    background: linear-gradient(to bottom, 
+    color-mix(in srgb, var(--risu-theme-darkbg), #0000 50%), 
+    color-mix(in srgb, var(--risu-theme-selected), #0000 25%), 
+    color-mix(in srgb, var(--risu-theme-darkbg), #0000 50%));
+    box-shadow: inset 0 0 10px 5px var(--risu-theme-borderc);
+    filter: drop-shadow(0 0 10px var(--risu-theme-borderc));
+    border-radius: calc(var(--dice-size) / 5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em;
+    color: var(--risu-theme-textcolor);
+}
+.dicemodule-side1 { transform: rotateY(0deg) translateZ(var(--dice-half-size)); }
+.dicemodule-side2 { transform: rotateY(90deg) translateZ(var(--dice-half-size)); }
+.dicemodule-side3 { transform: rotateY(180deg) translateZ(var(--dice-half-size)); }
+.dicemodule-side4 { transform: rotateY(-90deg) translateZ(var(--dice-half-size)); }
+.dicemodule-side5 { transform: rotateX(90deg) translateZ(var(--dice-half-size)); }
+.dicemodule-side6 { transform: rotateX(-90deg) translateZ(var(--dice-half-size)); }
+
+{{settempvar::maxroll::{{? 100-80*{{getglobalvar::toggle_choicemodule_dice}}}}}}
+.dicemodule-side2:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
+.dicemodule-side3:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
+.dicemodule-side4:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
+.dicemodule-side5:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
+.dicemodule-side6:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
+
+.dicemodule-cover {
+  background: radial-gradient(circle at center,
+  transparent 0%,
+  var(--risu-theme-borderc) 65%,
+  transparent 90%);
+  border-radius: 0px;
+  transform: translateZ(0px);
+  box-shadow: none;
+  filter: none;
+}
+.dicemodule-cover-x {
+  transform: rotateY(90deg);
+}
+.dicemodule-cover-z {
+  transform: rotateX(90deg);
+}
+
+@keyframes dice-anim-rotate {
+  0% { transform: rotateX(0deg) rotateY(0deg); }
+  33.3% { transform: rotateX(-30deg) rotateY(360deg); }
+  66.6% { transform: rotateX(30deg) rotateY(720deg); }
+  100% { transform: rotateX(0deg) rotateY(1080deg); }
+}
+
+@keyframes dice-anim-throw {
+  0% {
+    z-index: 1;
+    transform: translateY(0) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  }
+  40% {
+    transform: translateY(var(--dice-double-size)) rotateX(720deg) rotateY(360deg) rotateZ(180deg);
+  }
+  80% {
+    transform: translateY(0) rotateX(1440deg) rotateY(720deg) rotateZ(320deg);
+  }
+  90% {
+    transform: translateY(var(--dice-1-10-size)) rotateX(1440deg) rotateY(720deg) rotateZ(340deg);
+  }
+  100% {
+    transform: translateY(0) rotateX(1440deg) rotateY(720deg) rotateZ(360deg);
+  }
+}
+</style>
