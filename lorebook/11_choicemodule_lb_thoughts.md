@@ -23,8 +23,10 @@ Step:
 3. Character Dynamics: (Capture relevant character dynamics)
 4. Genre & Tag: (Refer to relevant genres and tags)
 5. Keywords: (Gather from creative materials that could inspire narrative idea.)
+{{#if_pure {{getglobalvar::toggle_choicemodule_auto}}}}
 6. Tension & Difficulty: (Assess scene tension and appropriate challenge level)
 7. Ally Assessment: (Evaluate if nearby characters can/should assist)
+{{/}}
 ...
 ```
 
@@ -41,5 +43,6 @@ LightBoard 모드에서 최종 제출 전 AI가 단계별로 사고하도록 유
   3. **Character Dynamics**: 관련 캐릭터 역학 파악
   4. **Genre & Tag**: 관련 장르와 태그 참조
   5. **Keywords**: 서사 아이디어를 영감받을 수 있는 키워드 수집
+- Auto ON(`toggle_choicemodule_auto`)일 때만 포함되는 추가 단계:
   6. **Tension & Difficulty**: 현재 장면의 긴장도와 적절한 난이도 평가
   7. **Ally Assessment**: 주변 캐릭터가 보조 가능한지 여부 평가
