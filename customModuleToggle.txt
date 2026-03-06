@@ -1,0 +1,24 @@
+ChoiceModule.mode=⚖️ 모듈 활성화
+ChoiceModule.korean=⚖️ 한국어 출력
+ChoiceModule.noLorebook=⚖️ 로어북 참조 비활성=select=0,1
+=⚖️ 선택지 스타일=divider
+choicemodule_type=⚖️ 선택지 스타일 타입=select=0,1,2,3,4
+choicemodule_length=⚖️ 선택지 텍스트 길이=select=0,1,2,3,4
+choicemodule_perspective=⚖️ NPC 관점 선택지
+choicemodule_diversity=⚖️ 다양성 강조 모드
+choicemodule_proactivity=⚖️ 능동적 제안 모드
+=⚖️ 표시 옵션=divider
+choicemodule_menu=⚖️ 메뉴 버튼 표시
+choicemodule_hidden=⚖️ 주사위 결과 숨김
+choicemodule_minimize=⚖️ 최소화 모드=select=0,1,2
+choicemodule_dice=⚖️ 주사위 모드
+=⚖️ LightBoard=divider
+lightboard.thoughts=⚖️ LightBoard 사고 단계=select=0,1,2,3,4,5
+=⚖️ 확장 기능=divider
+choicemodule_difficulty_mod=⚖️⚙️ 난이도 보정=select=-5,-4,-3,-2,-1,0,1,2,3,4,5
+choicemodule_dc_min=⚖️⚙️ 최소 DC=select=1,2,3,4,5
+choicemodule_dc_max=⚖️⚙️ 최대 DC=select=15,16,17,18,19,20
+choicemodule_ally=⚖️⚙️ 파티원 보조
+choicemodule_ally_name=⚖️⚙️ 파티원 이름=input
+choicemodule_ultimate=⚖️⚙️ 궁극기 시스템
+==groupEnd
