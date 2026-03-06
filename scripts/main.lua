@@ -42,12 +42,36 @@ listenEdit("editDisplay", function(t, d)
 		return ""
 	end)
 
+	-- ── Ultimate (궁극기) gauge bar ────────────────────────────────────────────
+	-- Reads per-stat gauges from chatVar and renders a compact bar row.
+	-- Only rendered when toggle_choicemodule_ultimate is truthy.
+	local function buildGaugeBar(cid)
+		local ok_g, ult_on = pcall(getGlobalVar, "toggle_choicemodule_ultimate")
+		if not ok_g or not ult_on or ult_on == "false" or ult_on == "0" then
+			return ""
+		end
+		local STATS = {"STR","DEX","CON","INT","WIS","CHA"}
+		local EMOJIS = {STR="🪓",DEX="🏃",CON="🛡️",INT="🧠",WIS="👁️",CHA="💬"}
+		local MAX = 5
+		local parts = {}
+		for _, s in ipairs(STATS) do
+			local g = math.min(tonumber(getChatVar(cid, "ChoiceModule.ult_"..s)) or 0, MAX)
+			local ico = (g >= MAX) and "🔥" or EMOJIS[s]
+			table.insert(parts, ico.." "..s.." ["..string.rep("█",g)..string.rep("░",MAX-g).."] "..g.."/"..MAX)
+		end
+		return '<div class="choicemodule-ult-gauge">'..table.concat(parts, "  ").."</div>"
+	end
+	local gauge_html  = buildGaugeBar(t)
+	-- Escape bare '%' so the string is safe to embed in a gsub replacement
+	local gauge_safe  = gauge_html:gsub("%%", "%%%%")
+	local wh_gauge    = gauge_safe ~= "" and ("\n"..gauge_safe) or ""
+
 	-- Wrapper template: <Choice> → checkbox toggle
 	local wh = [[<p></p>
 <label>
 <input type="checkbox" class="choicemodule-toggle" />
 <div class="choicemodule-wrapper">
-%1
+%1]] .. wh_gauge .. [[
 </div>
 </label>]]
 
@@ -97,8 +121,12 @@ listenEdit("editDisplay", function(t, d)
 
 	-- Convert <Suggestion id=N>...</Suggestion> → clickable buttons
 	if r > 0 then
-		d = d:gsub("<[sS]uggestion%s+id=[^%d]-(%d+)[^>]->%s*(.-)%s*</[sS]uggestion>%s-",
-		function(i, d)
+		d = d:gsub("<[sS]uggestion(%s[^>]-)>%s*(.-)%s*</[sS]uggestion>%s-",
+		function(attrs, d)
+			local i = attrs:match("id=[^%d]*(%d+)")
+			if not i then return "" end
+			local stat_raw = attrs:match("stat=[{%s]*[`\"']?([%w]+)")
+			local stat = stat_raw and stat_raw:upper()
 			local b = ""
 			-- Extract <Check> dice info into bubble tooltip
 			d, r = d:gsub([[%s*<[cC]heck%s+for=[{%s]*[`"']?(.-)[`"']?[%s}>]*comment=[{%s]*[`"']?(.-)[`"']?[%s}]*(%w*)_%w*=[^%d]*([%d]+).->%s*]], function(f, c, t, o)
@@ -121,7 +149,18 @@ listenEdit("editDisplay", function(t, d)
 				return table.concat({"<p>🧩 ", seed:gsub("`", ""), "</p><p>📜 ", scene, "</p>", b})
 			end)
 			d = d:gsub("%s*<[sS]cene[^>]->%s*", "")
-			return table.concat({[[<button risu-btn="choicemodule_op_{{chat_index}}_]], i, [[" class="choicemodule-button">]], d, "</button>\n"})
+			-- Determine ultimate-ready glow class (BETA)
+			local ult_class = ""
+			if stat then
+				local ok_u, ult_on = pcall(getGlobalVar, "toggle_choicemodule_ultimate")
+				if ok_u and ult_on and ult_on ~= "false" and ult_on ~= "0" then
+					local gauge = tonumber(getChatVar(t, "ChoiceModule.ult_"..stat)) or 0
+					if gauge >= 5 then
+						ult_class = " choicemodule-ult-ready"
+					end
+				end
+			end
+			return table.concat({[[<button risu-btn="choicemodule_op_{{chat_index}}_]], i, [[" class="choicemodule-button]], ult_class, [[">]], d, "</button>\n"})
 		end)
 	else
 		-- Convert <?checked ...?> dice result → interactive dice table UI
