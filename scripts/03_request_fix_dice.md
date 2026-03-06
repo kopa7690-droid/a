@@ -1,10 +1,10 @@
-# 🗑️ Request: Fix Dice — 주사위 포맷 수정 규칙
+# 🗑️ Request: Strip Dice — 주사위 블록 제거 (AI용)
 
 ## 항목 정보
 
 | 필드 | 값 |
-|------|----|
-| **name** | `🗑️ Request: Fix Dice` |
+|------|---|
+| **name** | `🗑️ Request: Strip Dice` |
 | **type** | `editprocess` |
 | **ableFlag** | `true` |
 
@@ -13,25 +13,24 @@
 ## 패턴 (Pattern)
 
 ```regex
-^<\?checked(.+?)rolled=([\d\s]+)threshold=([{}\d\s]+)(.+?)\?>
+[\s`]*<\?checked\s+for=.+?\?>[`\s]*
 ```
 
-**플래그**: `smg`
+**플래그**: `gs`
 
 ---
 
 ## 치환 (Replace)
 
 ```
-<?checked$1difficulty_class=$3dice_rolled=$2dice_$4?>
+(빈 문자열 — 아무것도 넣지 않음)
 ```
 
 ---
 
 ## 설명
 
-구형 주사위 포맷(`rolled=`, `threshold=`)을  
-현재 모듈이 사용하는 신형 포맷(`difficulty_class=`)으로 변환합니다.
+AI에게 보내는 컨텍스트에서 `<?checked ... ?>` 블록 전체를 제거합니다.
+주사위 숫자(rolled, threshold)를 AI에게 노출하지 않기 위함입니다.
 
-- D20 전용: `difficulty_class=`, `dice_rolled=` 포맷으로 변환
-- `smg` 플래그: 멀티라인 + 전체 치환
+AI가 참고할 정보(instructions, OOC 메모)는 블록 바깥에 있으므로 유지됩니다.
