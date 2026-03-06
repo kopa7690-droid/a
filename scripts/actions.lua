@@ -267,8 +267,6 @@ local actions = {
 						local bonus = ASSIST_BONUS[ally_o] or 0
 						if bonus > 0 then
 							final_o = LEVEL_NAME[math.min(user_level + bonus, 5)] or o
-						else
-							ally_o, ally_r = nil, nil
 						end
 					end
 				end
@@ -487,8 +485,6 @@ text={ `%s` }
 				local bonus = ASSIST_BONUS[ally_o] or 0
 				if bonus > 0 then
 					final_o = LEVEL_NAME[math.min(user_level + bonus, 5)] or new_o
-				else
-					ally_o, ally_r = nil, nil
 				end
 			end
 		end

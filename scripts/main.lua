@@ -262,6 +262,7 @@ listenEdit("editDisplay", function(t, d)
 				ally_rolled, ao ~= "" and ao or nil, fo ~= "" and fo or nil)
 		end)
 	end
+	d = d:gsub("%*%s*%(OOC:.-%)%s*", "")
 	return c..d
 end)
 
