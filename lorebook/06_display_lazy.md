@@ -6,27 +6,26 @@
 |------|----|
 | **name** | `🖥️ Display: Lazy` |
 | **type** | `editdisplay` |
+| **bookVersion** | `2` |
 
 ---
 
 ## 패턴 (Pattern)
 
 ```regex
-<lb-lazy id[entifr]="" choicemodule="" [=""><]*\/[lb\-lazy]*>\n?
+<lb-lazy id[entifr]*="ChoiceModule"[ ><]*\/[lb\-lazy]*>\n?
 ```
 
 ---
 
 ## 치환 (Replace)
 
-```html
+```
 {{#if {{greater_equal::{{chat_index}}::{{lastmessageid}}}}}}
 <div class="lb-module-root" data-id="lb-choicemodule">
-  <button class="lb-lazyloader" risu-btn="lb-reroll__ChoiceModule">
-    <span class="lb-opener">
-      <span>⚖️ 선택지 불러오기<lb-reroll-icon></lb-reroll-icon></span>
-    </span>
-  </button>
+<button class="lb-lazyloader" risu-btn="lb-reroll__ChoiceModule">
+<span class="lb-opener"><span>⚖️ 선택지 불러오기<lb-reroll-icon /></span></span>
+</button>
 </div>
 {{/if}}
 ```
@@ -40,3 +39,4 @@
 
 - 최신 메시지(`chat_index >= lastmessageid`)에서만 표시
 - `risu-btn="lb-reroll__ChoiceModule"`: 클릭 시 선택지 재생성 요청
+- `id[entifr]*`: `id=`, `identifier=` 등 다양한 속성명 허용

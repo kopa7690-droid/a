@@ -3,11 +3,12 @@
 ## 목차
 
 1. [빠른 시작](#빠른-시작)
-2. [선택지 포맷 상세](#선택지-포맷-상세)
-3. [주사위 판정 상세](#주사위-판정-상세)
-4. [버튼 인터랙션](#버튼-인터랙션)
-5. [전역 변수 상세](#전역-변수-상세)
-6. [트러블슈팅](#트러블슈팅)
+2. [LightBoard 모드](#lightboard-모드)
+3. [선택지 포맷 상세](#선택지-포맷-상세)
+4. [주사위 판정 상세](#주사위-판정-상세)
+5. [버튼 인터랙션](#버튼-인터랙션)
+6. [전역 변수 상세](#전역-변수-상세)
+7. [트러블슈팅](#트러블슈팅)
 
 ---
 
@@ -17,14 +18,24 @@
 
 RisuAI의 로어북(World Info)에 아래 항목들을 순서대로 추가합니다:
 
-| 순서 | 파일 | 타입 |
-|------|------|------|
-| 1 | `lorebook/01_main_prompt.md` | lorebook |
-| 2 | `lorebook/02_request_omit_choice.md` | editprocess |
-| 3 | `lorebook/03_request_fix_dice.md` | editprocess |
-| 4 | `lorebook/04_display_menu.md` | editdisplay |
-| 5 | `lorebook/05_output_remove_dice.md` | editoutput |
-| 6 | `lorebook/06_display_lazy.md` | editdisplay |
+| 순서 | 파일 | 항목명 | 타입 |
+|------|------|--------|------|
+| 1 | `lorebook/01_main_prompt.md` | `⚖️ Choice Module: Capsule Extension 💊` | lorebook |
+| 2 | — | `---` | (구분선) |
+| 3 | `lorebook/07_manifest_lb.md` | `manifest.lb` | lorebook |
+| 4 | `lorebook/08_choicemodule_lb.md` | `ChoiceModule.lb` | lorebook |
+| 5 | `lorebook/09_choicemodule_lb_job.md` | `ChoiceModule.lb.job` | lorebook |
+| 6 | `lorebook/10_choicemodule_lb_format.md` | `ChoiceModule.lb.format` | lorebook |
+| 7 | `lorebook/11_choicemodule_lb_thoughts.md` | `ChoiceModule.lb.thoughts` | lorebook |
+| 8 | `lorebook/12_choicemodule_lb_onoutput.md` | `ChoiceModule.lb.onOutput` | lorebook |
+| 9 | `lorebook/13_choicemodule_lb_interaction.md` | `ChoiceModule.lb.interaction` | lorebook |
+| 10 | `lorebook/14_choicemodule_lb_thoughts_interaction.md` | `ChoiceModule.lb.thoughts-interaction` | lorebook |
+| 11 | `scripts/actions.lua` 내용 | `ChoiceModule.actions` | lorebook |
+| 12 | `lorebook/02_request_omit_choice.md` | `🗑️ Request: Omit Choice` | editprocess |
+| 13 | `lorebook/03_request_fix_dice.md` | `🗑️ Request: Fix Dice` | editprocess |
+| 14 | `lorebook/04_display_menu.md` | `🖥️ Display: Menu` | editdisplay |
+| 15 | `lorebook/05_output_remove_dice.md` | `🖨️ Output: Remove Dice` | editoutput |
+| 16 | `lorebook/06_display_lazy.md` | `🖥️ Display: Lazy` | editdisplay |
 
 ### 2단계: Lua 스크립트 추가
 
@@ -38,6 +49,8 @@ RisuAI의 로어북(World Info)에 아래 항목들을 순서대로 추가합니
 1. 새 로어북 항목 생성, 이름: `ChoiceModule.actions`
 2. `scripts/actions.lua` 내용을 콘텐츠로 붙여넣기
 
+> **참고**: `scripts/actions.lua`는 `@`를 난독화 문자로 사용합니다. 파일 내용을 그대로 복사하면 됩니다. `@`는 런타임에 `-`로 자동 치환됩니다.
+
 ### 4단계: 전역 변수 초기화
 
 아래 전역 변수를 원하는 값으로 설정합니다 (기본값 예시):
@@ -49,8 +62,46 @@ toggle_choicemodule_perspective = false
 toggle_choicemodule_menu = true
 toggle_choicemodule_dice = 0
 toggle_choicemodule_hidden = false
+toggle_choicemodule_diversity = false
+toggle_choicemodule_proactivity = false
 toggle_ChoiceModule.mode = false
+toggle_ChoiceModule.korean = false
+toggle_ChoiceModule.noLorebook = 0
+toggle_lightboard.thoughts = 3
 ```
+
+---
+
+## LightBoard 모드
+
+LightBoard 모드는 선택지 생성을 메인 AI 응답과 분리하여 **별도의 독립된 AI 호출**로 처리하는 고급 모드입니다.
+
+### 작동 방식
+
+1. 메인 AI 응답이 완료된 후 `<lb-lazy>` 태그가 삽입됩니다.
+2. **"⚖️ 선택지 불러오기"** 버튼이 표시됩니다.
+3. 버튼 클릭 시 LightBoard가 `manifest.lb`에 정의된 컨텍스트를 사용해 선택지를 별도 생성합니다.
+4. 생성된 선택지는 `ChoiceModule.lb.onOutput`에 의해 후처리되어 채팅에 삽입됩니다.
+
+### LightBoard 관련 로어북 항목
+
+| 항목 | 역할 |
+|------|------|
+| `manifest.lb` | 컨텍스트 범위 정의 (`authorsNote`, `charDesc`, `loreBooks`, `personaDesc`) |
+| `ChoiceModule.lb` | 태스크 지시문 (선택지 생성 방법) |
+| `ChoiceModule.lb.job` | 작업 설명 (창작 자료 기반) |
+| `ChoiceModule.lb.format` | XML 출력 형식 (`<lb-choice>...</lb-choice>`) |
+| `ChoiceModule.lb.thoughts` | 단계별 추론 유도 |
+| `ChoiceModule.lb.onOutput` | 출력 ID 타임스탬프 처리 |
+| `ChoiceModule.lb.interaction` | 유저 특정 요청 반영 |
+| `ChoiceModule.lb.thoughts-interaction` | 인터랙션 시 단계별 추론 |
+
+### 관련 전역 변수
+
+| 변수명 | 설명 |
+|--------|------|
+| `toggle_ChoiceModule.noLorebook` | `1`로 설정하면 LightBoard 호출 시 로어북 제외 |
+| `toggle_lightboard.thoughts` | 3 미만이면 각 사고 단계를 8단어 이하로 제한 |
 
 ---
 
@@ -152,11 +203,25 @@ DC ~ 19 : ✅ Success
 
 ### 📋 메뉴 버튼 (`choicemodule_mn_N`)
 
-선택지 모듈의 전체 메뉴를 엽니다.
+선택지 모듈의 전체 메뉴를 엽니다. 아래 4가지 옵션을 제공합니다:
+
+| 옵션 | 설명 |
+|------|------|
+| 취소 | 아무 작업도 하지 않고 닫기 |
+| 선택지 재생성 | OOC 메시지를 삽입하여 선택지만 재생성 |
+| 선택지 요청 + 재생성 | 특정 선택지를 포함한 재생성 (입력창 표시) |
+| 선택지 삭제 | 현재 메시지의 `<Choice>` 블록 제거 |
 
 ### 🔄 합치기 버튼 (`choicemodule_mg`)
 
-OOC 메시지의 선택지를 이전 AI 응답에 병합합니다.
+OOC 메시지로 생성된 선택지를 **이전 AI 응답에 병합**합니다.
+
+작동 원리:
+1. 현재(마지막) 메시지에서 `<Choice>` 블록을 추출합니다.
+2. 현재보다 2번 앞의 AI 응답 메시지를 찾습니다.
+3. 해당 메시지에 이미 `<Choice>` 블록이 있으면 교체하고, 없으면 뒤에 추가합니다.
+4. OOC 선택지 요청 메시지를 제거합니다.
+5. 채팅 목록이 짧은 경우(2개 이하) 첫 번째 메시지에 직접 삽입합니다.
 
 ---
 
@@ -185,6 +250,31 @@ OOC 메시지의 선택지를 이전 AI 응답에 병합합니다.
 주사위 결과 숨김:
 - `false` (0): 결과 표시
 - `true` (1): 과거 메시지의 결과를 `[ ? ]`로 숨김
+
+### `toggle_choicemodule_diversity`
+
+- `false` (0): 기본 동작
+- `true` (1): 반복적인 선택지를 피하고 다양성 있는 옵션 생성 지시
+
+### `toggle_choicemodule_proactivity`
+
+- `false` (0): 기본 동작
+- `true` (1): 현상 유지가 아닌 진행을 위한 능동적인 제안 생성 지시
+
+### `toggle_ChoiceModule.korean`
+
+- `false` (0): 기본 언어 사용
+- `true` (1): 텍스트 노드와 속성값을 한국어로 작성 요청
+
+### `toggle_ChoiceModule.noLorebook`
+
+- `0` (기본): LightBoard 호출 시 로어북 포함
+- `1`: LightBoard 호출 시 로어북 제외
+
+### `toggle_lightboard.thoughts`
+
+- `3 이상` (기본): 단계별 사고 제한 없음
+- `3 미만`: 각 사고 단계를 8단어 이하로 제한 (간결한 추론)
 
 ---
 
