@@ -20,6 +20,14 @@
 {{settempvar::length::An option with a concise explanation for {{user}}{{#if_pure {{getglobalvar::toggle_choicemodule_perspective}}}} or NPC{{/}}}}
 {{/}}
 }}<lb-choice>
+{{#if_pure {{getglobalvar::toggle_choicemodule_auto}}}}
+<Director>
+  <Tension level={ `low|medium|high|critical` } />
+  <AllyReady name={ `nearby character name or none` } available={ `true|false` } />
+  <DCRange suggested_min={ `3~10` } suggested_max={ `12~18` } />
+  <DifficultyMod value={ `-3 to +3` } />
+</Director>
+{{/}}
 {{#if_pure {{equal::{{getglobalvar::toggle_choicemodule_type}}::0}}}}<Suggestion id={ 1 } stat={ `STR` }>
   <Scene seed={ `Basic or 기본, etc.` }>
     {{gettempvar::length}}, consistent with their established character.
@@ -133,3 +141,4 @@ LightBoard 모드에서 AI에게 제공하는 출력 형식 템플릿입니다.
 - `toggle_choicemodule_type`에 따라 다양한 선택지 포맷 적용
 - 항상 정확히 5개의 선택지를 생성하며, 각 선택지에 `stat={ STR|DEX|CON|INT|WIS|CHA }` 속성이 필수 (5개 모두 서로 다른 스탯)
 - **궁극기 연동**: `stat` 속성은 `scripts/actions.lua`의 게이지 충전·발동 로직에서 사용됩니다. `toggle_choicemodule_ultimate = true`일 때 FULL 게이지 스탯 선택지는 자동으로 Critical Success를 발동합니다.
+- **Director 블록**: `toggle_choicemodule_auto`가 켜져 있을 때만 `<lb-choice>` 바로 뒤에 출력됩니다. AI가 현재 장면의 긴장도(Tension), 파티원 보조 가능 여부(AllyReady), DC 범위(DCRange), 난이도 보정(DifficultyMod)을 자동으로 판단합니다. 이 블록은 `onOutput`에서 파싱 후 chatVar에 저장되고 출력에서 제거됩니다.

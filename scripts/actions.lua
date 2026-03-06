@@ -107,6 +107,42 @@ local function getAllyName(t)
 	return v
 end
 
+@@[[ Auto-judgment helpers — used when toggle_choicemodule_auto is enabled
+  isAutoEnabled   : returns true if the auto mode global var is truthy
+  shouldAllyAssist: chatVar override > globalVar fallback for ally assist
+  getEffectiveAllyName: chatVar override > globalVar fallback for ally name
+  TENSION_MOD     : per-tension DC modifier added on top of diff_mod
+@@]]
+local function isAutoEnabled(t)
+	local v = getGlobalVar(t, "toggle_choicemodule_auto")
+	if not v then return false end
+	return v == "true" or v == "1" or v == true or v == 1
+end
+
+local function shouldAllyAssist(t)
+	if isAutoEnabled(t) then
+		local v = getChatVar(t, "ChoiceModule.auto_ally")
+		if v == "true" or v == "1" then return true end
+		if v == "false" or v == "0" then return false end
+	end
+	return isAllyEnabled(t)
+end
+
+local function getEffectiveAllyName(t)
+	if isAutoEnabled(t) then
+		local v = getChatVar(t, "ChoiceModule.auto_ally_name")
+		if v and v ~= "" then return v end
+	end
+	return getAllyName(t)
+end
+
+local TENSION_MOD = {
+	low      = -2,
+	medium   =  0,
+	high     =  1,
+	critical =  3,
+}
+
 @@[[ generateInstruction — builds the instructions= string for the final checked block
   allyName    : ally character name
   userOutcome : the user's raw outcome (before ally assist)
@@ -184,9 +220,21 @@ local actions = {
 				@@ DC clamp: apply global difficulty modifier and min/max clamp
 				local dc = tonumber(m[4]) or 10
 				do
-					local mod   = tonumber(getGlobalVar(cmc_parts[1], "toggle_choicemodule_difficulty_mod")) or 0
-					local minDC = tonumber(getGlobalVar(cmc_parts[1], "toggle_choicemodule_dc_min"))  or 3
-					local maxDC = tonumber(getGlobalVar(cmc_parts[1], "toggle_choicemodule_dc_max"))  or 18
+					local auto = isAutoEnabled(cmc_parts[1])
+					local mod, minDC, maxDC
+					if auto then
+						mod   = tonumber(getChatVar(cmc_parts[1], "ChoiceModule.auto_diff_mod"))
+						minDC = tonumber(getChatVar(cmc_parts[1], "ChoiceModule.auto_dc_min"))
+						maxDC = tonumber(getChatVar(cmc_parts[1], "ChoiceModule.auto_dc_max"))
+						@@ Apply tension modifier on top if available
+						local tension = getChatVar(cmc_parts[1], "ChoiceModule.auto_tension")
+						if tension and TENSION_MOD[tension] then
+							mod = (mod or 0) + TENSION_MOD[tension]
+						end
+					end
+					mod   = mod   or tonumber(getGlobalVar(cmc_parts[1], "toggle_choicemodule_difficulty_mod")) or 0
+					minDC = minDC or tonumber(getGlobalVar(cmc_parts[1], "toggle_choicemodule_dc_min"))  or 3
+					maxDC = maxDC or tonumber(getGlobalVar(cmc_parts[1], "toggle_choicemodule_dc_max"))  or 18
 					dc = math.max(minDC, math.min(maxDC, dc + mod))
 				end
 				local o, r
@@ -206,7 +254,7 @@ local actions = {
 				end
 				@@ Ally assist (보조 판정): only when ultimate did not fire
 				local ally_o, ally_r, final_o = nil, nil, o
-				if not ult_fired and isAllyEnabled(cmc_parts[1]) then
+				if not ult_fired and shouldAllyAssist(cmc_parts[1]) then
 					local user_level = LEVELS[o] or 0
 					if user_level <= 2 then
 						ally_o, ally_r = dr(dc)
@@ -257,7 +305,7 @@ comment={ `%s` }
 				)
 				@@ Blocks 2 & 3: ally support + final result (only when ally assists)
 				if ally_o and final_o ~= o then
-					local ally_name = getAllyName(cmc_parts[1])
+					local ally_name = getEffectiveAllyName(cmc_parts[1])
 					local bonus = ASSIST_BONUS[ally_o] or 0
 					um = um .. string.format([[
 
@@ -426,7 +474,7 @@ text={ `%s` }
 
 		@@ Recompute ally assist for the new outcome
 		local ally_o, ally_r, final_o = nil, nil, new_o
-		if isAllyEnabled(cmc_parts[1]) then
+		if shouldAllyAssist(cmc_parts[1]) then
 			local user_level = LEVELS[new_o] or 0
 			if user_level <= 2 then
 				ally_o, ally_r = dr(dc)
@@ -466,7 +514,7 @@ text={ `%s` }
 
 		@@ Inject new support/final blocks after block 1 if ally assists
 		if ally_o and final_o ~= new_o then
-			local ally_name = getAllyName(cmc_parts[1])
+			local ally_name = getEffectiveAllyName(cmc_parts[1])
 			local bonus = ASSIST_BONUS[ally_o] or 0
 			local support_block = string.format([[
 
