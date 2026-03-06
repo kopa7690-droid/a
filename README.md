@@ -82,8 +82,6 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 | `toggle_ChoiceModule.korean` | boolean | 한국어 출력 모드 |
 | `toggle_ChoiceModule.noLorebook` | number | 1이면 LightBoard 로어북 참조 비활성 |
 | `toggle_lightboard.thoughts` | number | LightBoard 사고 단계 상세도 (3 미만이면 8단어 제한) |
-| `toggle_choicemodule_ultimate` | boolean | 궁극기(Ultimate) 시스템 활성화 여부 (BETA, 기본값 false) |
-| `toggle_choicemodule_ally` | boolean | 보조(Ally) 판정 시스템 활성화 여부 (기본값 false) |
 | `toggle_choicemodule_ally_name` | string | 보조 판정 캐릭터 이름 (기본값 "파티원") |
 
 ---
@@ -127,9 +125,9 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 
 ---
 
-## 🔥 궁극기 시스템 (Ultimate System) — BETA
+## 🔥 궁극기 시스템 (Ultimate System)
 
-> `toggle_choicemodule_ultimate = true`로 활성화합니다.
+> 항상 활성화됩니다 (별도 토글 불필요).
 
 ### 개요
 
@@ -173,16 +171,13 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 - FULL 게이지 스탯은 🔥, 일반은 스탯 이모지로 표시: `🔥 STR [█████] 5/5`
 - FULL 게이지 선택지 버튼에 CSS 강조 클래스 `choicemodule-ult-ready` 적용 (BETA)
 
-### 후방 호환
+### 참고
 
-- `toggle_choicemodule_ultimate`가 false/0이거나 설정되지 않은 경우 완전히 비활성 → 기존 동작 유지
 - `stat` 속성 없는 구형 선택지: 게이지 충전/발동 없음
 
 ---
 
-## 🤝 보조 판정 시스템 (Ally Assist System) — Phase 4
-
-> 활성화: `toggle_choicemodule_ally = true`
+## 🤝 보조 판정 시스템 (Ally Assist System)
 
 ### 개요
 
@@ -242,13 +237,11 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 
 | 변수명 | 타입 | 기본값 | 설명 |
 |--------|------|--------|------|
-| `toggle_choicemodule_ally` | boolean | false | 보조 판정 시스템 활성화 여부 |
 | `toggle_choicemodule_ally_name` | string | "파티원" | OOC에 표시될 보조 캐릭터 이름 |
 
-### 후방 호환
+### 참고
 
-- `toggle_choicemodule_ally`가 false/0이거나 설정되지 않은 경우 완전히 비활성 → 기존 동작 유지
-- 궁극기 시스템과 독립적으로 동작합니다 (둘 다 활성화 가능)
+- 궁극기 시스템과 독립적으로 동작합니다
 
 ---
 

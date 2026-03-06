@@ -11,6 +11,8 @@ choicemodule_perspective=⚖️ NPC 관점 선택지
 =ON: 유저+NPC 모두 / OFF: 유저만=caption
 choicemodule_diversity=⚖️ 다양성 강조 모드
 choicemodule_proactivity=⚖️ 능동적 제안 모드
+choicemodule_ally_name=⚖️⚙️ 파티원 이름=text
+=보조 캐릭터 이름. 비우면 "파티원"=caption
 =⚖️ 표시 옵션=divider
 choicemodule_menu=⚖️ 메뉴 버튼 표시
 choicemodule_hidden=⚖️ 주사위 결과 숨김
@@ -21,20 +23,6 @@ choicemodule_minimize=⚖️ 최소화 모드=select=Off,Hover,Click
 lightboard.thoughts=⚖️ LB 사고 단계=select=0,1,2,3,4,5
 =0: 비활성 / 1~2: 간결(8단어 제한) / 3~5: 상세(제한 없음)=caption
 =↑ 품질 향상, 토큰 증가=caption
-=⚖️ 확장 기능=divider
-choicemodule_difficulty_mod=⚖️⚙️ 난이도 보정=select=-5,-4,-3,-2,-1,0,1,2,3,4,5
-=DC에 더해지는 고정 보정값. 양수=어려움, 음수=쉬움=caption
-choicemodule_dc_min=⚖️⚙️ 최소 DC=select=1,2,3,4,5
-choicemodule_dc_max=⚖️⚙️ 최대 DC=select=15,16,17,18,19,20
-=DC 범위 제한. AI/수동 DC가 이 범위로 클램프됨=caption
-choicemodule_ally=⚖️⚙️ 파티원 보조
-=실패 시 파티원이 보조 주사위를 굴려 결과 보정=caption
-choicemodule_ally_name=⚖️⚙️ 파티원 이름=text
-=보조 캐릭터 이름. 비우면 "파티원"=caption
-choicemodule_ultimate=⚖️⚙️ 궁극기 시스템
-=스탯별 게이지 축적 → 만충 시 무조건 대성공=caption
-choicemodule_auto=⚖️⚙️ AI 자동 판단
-=ON: AI가 긴장도/보조/DC를 자동 결정. 수동 설정 무시됨=caption
 ==groupEnd
 
 ---
