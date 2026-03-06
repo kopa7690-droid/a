@@ -262,6 +262,10 @@ listenEdit("editDisplay", function(t, d)
 				ally_rolled, ao ~= "" and ao or nil, fo ~= "" and fo or nil)
 		end)
 	end
+	-- OOC 노트 숨기기: AI 지시용 메모를 유저 화면에서 제거
+	d = d:gsub("\n*%*%s*%(OOC:.-%)%s*", "")
+	d = d:gsub("\n*%*%s*OOC:.-\n", "\n")
+	d = d:gsub("\n*%*%s*OOC:.-$", "")
 	return c..d
 end)
 
