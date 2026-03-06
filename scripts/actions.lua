@@ -53,8 +53,7 @@ local ULT_EMOJIS   = {STR="🪓", DEX="🏃", CON="🛡️", INT="🧠", WIS="�
   Tracks consecutive failure outcomes across rolls using a chatVar.
   Key     : ChoiceModule.failStreak  (stored per character/chat)
   Trigger : failStreak >= 3 → add random bonus (+1~+5, D20 scale) to the next roll
-  Reset   : Critical Success or Success resets failStreak to 0
-  No@op   : Narrow Success leaves streak unchanged (neither increment nor reset)
+  Reset   : Critical Success, Success, or Narrow Success resets failStreak to 0
   OOC     : When pity fires, an OOC note is automatically appended to the user message.
 @@]]
 local FAIL_STREAK_KEY = "ChoiceModule.failStreak"
@@ -112,15 +111,18 @@ end
   allyName    : ally character name
   userOutcome : the user's raw outcome (before ally assist)
   finalOutcome: the outcome after ally assist
-  bonus       : ASSIST_BONUS value (1=경감, 2=상쇄, 3=역전)
+  bonus       : ASSIST_BONUS value (0=보조 실패, 1=경감, 2=상쇄, 3=역전)
 @@]]
 local EFFECT_WORDS = { [1] = "경감", [2] = "상쇄", [3] = "역전" }
 
 local function generateInstruction(allyName, userOutcome, finalOutcome, bonus)
+	if bonus == 0 then
+		return string.format("%s(이)가 보조를 시도했으나 실패했습니다.", allyName)
+	end
 	local word = EFFECT_WORDS[math.min(bonus, 3)] or "보정"
 	return string.format(
-		"%s(이)가 {{user}}의 %s를 보조하여 %s(으)로 %s시킵니다. 유저의 행동을 서포트하는 묘사를 포함하세요.",
-		allyName, userOutcome, finalOutcome, word)
+		"%s가 {{user}}의 %s를 보조하여 %s를 %s로 %s시킵니다. 유저의 행동을 서포트를 시도하는 묘사를 포함하세요.",
+		allyName, userOutcome, userOutcome, finalOutcome, word)
 end
 
 local actions = {
@@ -217,7 +219,7 @@ local actions = {
 					end
 				end
 				@@ Update fail streak based on the effective final outcome
-				if final_o == "Critical Success" or final_o == "Success" then
+				if final_o == "Critical Success" or final_o == "Success" or final_o == "Narrow Success" then
 					@@ Success resets streak
 					setChatVar(cmc_parts[1], FAIL_STREAK_KEY, "0")
 				elseif final_o == "Failure" or final_o == "Critical Failure" or final_o == "Narrow Failure" then
@@ -439,7 +441,7 @@ text={ `%s` }
 
 		@@ Update fail streak (same logic as op action)
 		local fail_streak = tonumber(getChatVar(cmc_parts[1], FAIL_STREAK_KEY)) or 0
-		if final_o == "Critical Success" or final_o == "Success" then
+		if final_o == "Critical Success" or final_o == "Success" or final_o == "Narrow Success" then
 			setChatVar(cmc_parts[1], FAIL_STREAK_KEY, "0")
 		elseif final_o == "Failure" or final_o == "Critical Failure" or final_o == "Narrow Failure" then
 			setChatVar(cmc_parts[1], FAIL_STREAK_KEY, tostring(fail_streak + 1))
