@@ -21,4 +21,5 @@ choicemodule_dc_max=⚖️⚙️ 최대 DC=select=15,16,17,18,19,20
 choicemodule_ally=⚖️⚙️ 파티원 보조
 choicemodule_ally_name=⚖️⚙️ 파티원 이름=input
 choicemodule_ultimate=⚖️⚙️ 궁극기 시스템
+choicemodule_auto=⚖️⚙️ AI 자동 판단
 ==groupEnd
