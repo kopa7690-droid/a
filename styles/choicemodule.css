@@ -328,7 +328,7 @@
 .dicemodule-side5 { transform: rotateX(90deg) translateZ(var(--dice-half-size)); }
 .dicemodule-side6 { transform: rotateX(-90deg) translateZ(var(--dice-half-size)); }
 
-{{settempvar::maxroll::{{? 100-80*{{getglobalvar::toggle_choicemodule_dice}}}}}}
+{{settempvar::maxroll::20}}
 .dicemodule-side2:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
 .dicemodule-side3:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
 .dicemodule-side4:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
