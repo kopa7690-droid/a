@@ -124,8 +124,8 @@ AI가 응답 끝에 출력해야 하는 XML 형식입니다.
 <ChoiceModule>
   <Suggestion id="1">
     <Check for="전투 행동 설명"
-          comment="이 행동의 성공 확률"
-          success_probability=70
+          comment="이 행동의 성공 가능성"
+          difficulty_class=12
           dice_outcome="공격 성공 여부"/>
     적에게 검을 휘두른다.
   </Suggestion>

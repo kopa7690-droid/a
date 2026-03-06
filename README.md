@@ -175,7 +175,7 @@ AI가 출력해야 하는 선택지 형식:
 ```xml
 <ChoiceModule>
   <Suggestion id="1">
-    <Check for="행동 설명" comment="설명" success_probability=75 dice_outcome="..."/>
+    <Check for="행동 설명" comment="설명" difficulty_class=12 dice_outcome="..."/>
     선택지 텍스트
   </Suggestion>
   <Suggestion id="2">선택지 텍스트</Suggestion>
