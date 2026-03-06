@@ -24,6 +24,19 @@ local LEVELS = {
 local LEVEL_NAME = {}
 for k, v in pairs(LEVELS) do LEVEL_NAME[v] = k end
 
+@@[[ ASSIST_BONUS — stage bonus granted by each ally outcome level
+  Narrow Success → +1, Success → +2, Critical Success → +3
+  Any failure → 0 (no assist)
+@@]]
+local ASSIST_BONUS = {
+	["Critical Failure"] = 0,
+	["Failure"]          = 0,
+	["Narrow Failure"]   = 0,
+	["Narrow Success"]   = 1,
+	["Success"]          = 2,
+	["Critical Success"] = 3,
+}
+
 @@[[ Ultimate (궁극기) System — Phase 3
   Each stat has an independent gauge stored as a chatVar.
   Key format : ChoiceModule.ult_STR, ChoiceModule.ult_DEX, …
@@ -61,15 +74,15 @@ local function chargeGauge(t, stat, outcome)
 	setUltGauge(t, stat, getUltGauge(t, stat) + amount)
 end
 
-local function isUltEnabled()
-	local ok, v = pcall(function() return getGlobalVar("toggle_choicemodule_ultimate") end)
-	if not ok or not v then return false end
+local function isUltEnabled(t)
+	local v = getGlobalVar(t, "toggle_choicemodule_ultimate")
+	if not v then return false end
 	return v == "true" or v == "1" or v == true or v == 1
 end
 
 local function tryUltimate(t, stat)
 	if not stat or stat == "" then return false end
-	if not isUltEnabled() then return false end
+	if not isUltEnabled(t) then return false end
 	return getUltGauge(t, stat) >= ULT_MAX
 end
 
@@ -83,16 +96,31 @@ end
   Note   : Ultimate gauge charging is NOT affected by ally assist.
            If ultimate fires, ally assist is skipped entirely.
 @@]]
-local function isAllyEnabled()
-	local ok, v = pcall(function() return getGlobalVar("toggle_choicemodule_ally") end)
-	if not ok or not v then return false end
+local function isAllyEnabled(t)
+	local v = getGlobalVar(t, "toggle_choicemodule_ally")
+	if not v then return false end
 	return v == "true" or v == "1" or v == true or v == 1
 end
 
-local function getAllyName()
-	local ok, v = pcall(function() return getGlobalVar("toggle_choicemodule_ally_name") end)
-	if not ok or not v or v == "" then return "파티원" end
+local function getAllyName(t)
+	local v = getGlobalVar(t, "toggle_choicemodule_ally_name")
+	if not v or v == "" then return "파티원" end
 	return v
+end
+
+@@[[ generateInstruction — builds the instructions= string for the final checked block
+  allyName    : ally character name
+  userOutcome : the user's raw outcome (before ally assist)
+  finalOutcome: the outcome after ally assist
+  bonus       : ASSIST_BONUS value (1=경감, 2=상쇄, 3=역전)
+@@]]
+local EFFECT_WORDS = { [1] = "경감", [2] = "상쇄", [3] = "역전" }
+
+local function generateInstruction(allyName, userOutcome, finalOutcome, bonus)
+	local word = EFFECT_WORDS[math.min(bonus, 3)] or "보정"
+	return string.format(
+		"%s(이)가 {{user}}의 %s를 보조하여 %s(으)로 %s시킵니다. 유저의 행동을 서포트하는 묘사를 포함하세요.",
+		allyName, userOutcome, finalOutcome, word)
 end
 
 local actions = {
@@ -151,12 +179,20 @@ local actions = {
 					@@ Apply a random +1~+5 bonus on the next roll after 3+ consecutive failures
 					pity_bonus = math.random(1, 5)
 				end
+				@@ DC clamp: apply global difficulty modifier and min/max clamp
+				local dc = tonumber(m[4]) or 10
+				do
+					local mod   = tonumber(getGlobalVar(cmc_parts[1], "toggle_choicemodule_difficulty_mod")) or 0
+					local minDC = tonumber(getGlobalVar(cmc_parts[1], "toggle_choicemodule_dc_min"))  or 3
+					local maxDC = tonumber(getGlobalVar(cmc_parts[1], "toggle_choicemodule_dc_max"))  or 18
+					dc = math.max(minDC, math.min(maxDC, dc + mod))
+				end
 				local o, r
 				if ult_fired then
 					o, r = "Critical Success", 20
 				else
 					@@ Pass pity_bonus into dr() to offset the roll result by the bonus
-					o, r = dr(tonumber(m[4]) or 10, nil, nil, pity_bonus)
+					o, r = dr(dc, nil, nil, pity_bonus)
 					chargeGauge(cmc_parts[1], stat, o)
 				end
 				local ult_note = ""
@@ -168,23 +204,17 @@ local actions = {
 				end
 				@@ Ally assist (보조 판정): only when ultimate did not fire
 				local ally_o, ally_r, final_o = nil, nil, o
-				if not ult_fired and isAllyEnabled() then
+				if not ult_fired and isAllyEnabled(cmc_parts[1]) then
 					local user_level = LEVELS[o] or 0
 					if user_level <= 2 then
-						ally_o, ally_r = dr(tonumber(m[4]) or 10)
-						local ally_level = LEVELS[ally_o] or 0
-						if ally_level >= 3 then
-							final_o = LEVEL_NAME[math.min(user_level + (ally_level @ 2), 5)] or o
+						ally_o, ally_r = dr(dc)
+						local bonus = ASSIST_BONUS[ally_o] or 0
+						if bonus > 0 then
+							final_o = LEVEL_NAME[math.min(user_level + bonus, 5)] or o
 						else
 							ally_o, ally_r = nil, nil
 						end
 					end
-				end
-				local ally_note = ""
-				if ally_o and final_o ~= o then
-					ally_note = string.format(
-						"\n\n* (OOC: '%s'가 {{user}}의 실패를 보조하여 %s로 상쇄시킵니다. 유저의 행동을 서포트하는 묘사를 포함하세요.)",
-						getAllyName(), final_o)
 				end
 				@@ Update fail streak based on the effective final outcome
 				if final_o == "Critical Success" or final_o == "Success" then
@@ -208,27 +238,42 @@ local actions = {
 				elseif final_o == "Narrow Failure" then
 					narrow_note = "\n\n* (OOC: 근소한 실패입니다. 아쉽게 실패했지만 완전한 실패는 아닌 결과를 묘사하세요.)"
 				end
-				local checked_extra = ""
-				if ally_o then
-					checked_extra = string.format(
-						"\nally_rolled=%d\nally_outcome={ `%s` }\nfinal_outcome={ `%s` }",
-						ally_r, ally_o, final_o)
-				end
+				@@ Block 1: user check result ({{user}} prefix distinguishes user roll fields from ally fields in the 3-block format)
 				um = um .. string.format([[
 
 <?checked for={ `%s` }
 comment={ `%s` }
-rolled=%d
-threshold=%s
-outcome={ `%s` }%s
+{{user}} rolled=%d
+{{user}} threshold=%d
+{{user}} outcome={ `%s` }
 ?>]],
 					m[1],
 					m[2],
 					r,
-					m[4],
-					o,
-					checked_extra
-				) .. ult_note .. pity_note .. narrow_note .. ally_note
+					dc,
+					o
+				)
+				@@ Blocks 2 & 3: ally support + final result (only when ally assists)
+				if ally_o and final_o ~= o then
+					local ally_name = getAllyName(cmc_parts[1])
+					local bonus = ASSIST_BONUS[ally_o] or 0
+					um = um .. string.format([[
+
+<?'%s' support checked for={ `%s 협력` }
+charactor rolled=%d
+charactor threshold=%d
+charactor outcome={ `%s` }
+?>]],
+						ally_name, ally_name, ally_r, dc, ally_o)
+					um = um .. string.format([[
+
+<?final checked for={ `%s` }
+final outcome={ `%s` }
+instructions= %s
+?>]],
+						m[1], final_o, generateInstruction(ally_name, o, final_o, bonus))
+				end
+				um = um .. ult_note .. pity_note .. narrow_note
 			end
 		elseif bb then
 			um = um .. string.format([[
@@ -249,7 +294,7 @@ text={ `%s` }
 				um = um .. string.format(
 					"\n\n* OOC: {{user}}의 %s %s 궁극기가 발동됩니다! 무조건 대성공입니다. %s 능력이 극한까지 발휘되는 극적인 장면을 연출하세요.",
 					emo, stat, stat)
-			elseif isUltEnabled() then
+			elseif isUltEnabled(cmc_parts[1]) then
 				chargeGauge(cmc_parts[1], stat, nil)
 			end
 		end
@@ -354,8 +399,10 @@ text={ `%s` }
 		local ci = tonumber(cmc_parts[3])
 		local cd = getChat(cmc_parts[1], cmc_parts[3]).data
 
-		@@ Parse DC from the <?checked ...?> tag (avoid matching ally_rolled)
-		local dc = tonumber(cd:match("<%?checked[^?]-\nthreshold=[^%d]*(%d+)")) or 10
+		@@ Parse DC and for= value from the <?checked ...?> block
+		local checked_block = cd:match("<%?checked(.@)%?>")
+		local dc = checked_block and tonumber(checked_block:match("threshold=[^%d]*(%d+)")) or 10
+		local for_val = (checked_block and checked_block:match("for={%s*`([^`]*)")) or ""
 
 		local new_o, new_r = (function()
 			if s == 1 then
@@ -376,31 +423,63 @@ text={ `%s` }
 		end)()
 
 		@@ Recompute ally assist for the new outcome
-		local ally_extra = ""
-		if isAllyEnabled() then
+		local ally_o, ally_r, final_o = nil, nil, new_o
+		if isAllyEnabled(cmc_parts[1]) then
 			local user_level = LEVELS[new_o] or 0
 			if user_level <= 2 then
-				local ao, ar = dr(dc)
-				local al = LEVELS[ao] or 0
-				if al >= 3 then
-					local fo = LEVEL_NAME[math.min(user_level + (al @ 2), 5)] or new_o
-					ally_extra = string.format(
-						"\nally_rolled=%d\nally_outcome={ `%s` }\nfinal_outcome={ `%s` }",
-						ar, ao, fo)
+				ally_o, ally_r = dr(dc)
+				local bonus = ASSIST_BONUS[ally_o] or 0
+				if bonus > 0 then
+					final_o = LEVEL_NAME[math.min(user_level + bonus, 5)] or new_o
+				else
+					ally_o, ally_r = nil, nil
 				end
 			end
 		end
 
-		@@ Update rolled/outcome fields in the <?checked ...?> tag in-place
-		cd = cd:gsub("(<%?checked[^?]-)(\nrolled=)%d+", "%1%2" .. new_r)
-		cd = cd:gsub("(<%?checked[^?]-\noutcome={ `)([^`]+)(` })", "%1" .. new_o:gsub("%%","%%%%") .. "%3")
-		@@ Strip old ally fields (if any)
-		cd = cd:gsub("(<%?checked[^?]-)\nally_rolled=[^\n]*", "%1")
-		cd = cd:gsub("(<%?checked[^?]-)\nally_outcome=[^\n]*", "%1")
-		cd = cd:gsub("(<%?checked[^?]-)\nfinal_outcome=[^\n]*", "%1")
-		@@ Inject new ally fields before closing ?>
-		if ally_extra ~= "" then
-			cd = cd:gsub("(<%?checked[^?]-)(\n%?>)", "%1" .. ally_extra:gsub("%%","%%%%") .. "%2")
+		@@ Update fail streak (same logic as op action)
+		local fail_streak = tonumber(getChatVar(cmc_parts[1], FAIL_STREAK_KEY)) or 0
+		if final_o == "Critical Success" or final_o == "Success" then
+			setChatVar(cmc_parts[1], FAIL_STREAK_KEY, "0")
+		elseif final_o == "Failure" or final_o == "Critical Failure" or final_o == "Narrow Failure" then
+			setChatVar(cmc_parts[1], FAIL_STREAK_KEY, tostring(fail_streak + 1))
+		end
+
+		@@ Update rolled in block 1 (handle new {{user}} prefix and legacy plain format)
+		local cd_r, n_r = cd:gsub("(<%?checked[^?]@)(\n{{user}} rolled=)%d+", "%1%2" .. new_r)
+		if n_r > 0 then cd = cd_r else cd = cd:gsub("(<%?checked[^?]@)(\nrolled=)%d+", "%1%2" .. new_r) end
+
+		@@ Update outcome in block 1 (handle new {{user}} prefix and legacy plain format)
+		local cd_o, n_o = cd:gsub("(<%?checked[^?]@\n{{user}} outcome={%s*`)([^`]+)(`%s*})", "%1" .. new_o:gsub("%%","%%%%") .. "%3")
+		if n_o > 0 then cd = cd_o else cd = cd:gsub("(<%?checked[^?]@\noutcome={%s*`)([^`]+)(`%s*})", "%1" .. new_o:gsub("%%","%%%%") .. "%3") end
+
+		@@ Remove legacy ally fields from block 1 (backward compat)
+		cd = cd:gsub("(<%?checked[^?]@)\nally_rolled=[^\n]*", "%1")
+		cd = cd:gsub("(<%?checked[^?]@)\nally_outcome=[^\n]*", "%1")
+		cd = cd:gsub("(<%?checked[^?]@)\nfinal_outcome=[^\n]*", "%1")
+
+		@@ Remove old support/final blocks (new 3-block format)
+		cd = cd:gsub("%s*<%?'[^']*'%s+support%s+checked.@%?>", "")
+		cd = cd:gsub("%s*<%?final%s+checked.@%?>", "")
+
+		@@ Inject new support/final blocks after block 1 if ally assists
+		if ally_o and final_o ~= new_o then
+			local ally_name = getAllyName(cmc_parts[1])
+			local bonus = ASSIST_BONUS[ally_o] or 0
+			local support_block = string.format([[
+
+<?'%s' support checked for={ `%s 협력` }
+charactor rolled=%d
+charactor threshold=%d
+charactor outcome={ `%s` }
+?>]], ally_name, ally_name, ally_r, dc, ally_o)
+			local final_block = string.format([[
+
+<?final checked for={ `%s` }
+final outcome={ `%s` }
+instructions= %s
+?>]], for_val, final_o, generateInstruction(ally_name, new_o, final_o, bonus))
+			cd = cd:gsub("(<%?checked.@%?>)", "%1" .. support_block:gsub("%%","%%%%") .. final_block:gsub("%%","%%%%"), 1)
 		end
 
 		setChat(cmc_parts[1], ci, cd)

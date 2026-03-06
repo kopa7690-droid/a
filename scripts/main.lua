@@ -34,6 +34,7 @@ end)
 -- ── Display Edit Hook ───────────────────────────────────────────────────────
 -- Converts choice/dice XML tags into interactive HTML UI elements
 listenEdit("editDisplay", function(t, d)
+	local tid = t  -- save trigger ID before any inner callbacks shadow 't'
 	local c, r = ""
 
 	-- Extract and temporarily remove <Thoughts> block
@@ -46,8 +47,8 @@ listenEdit("editDisplay", function(t, d)
 	-- Reads per-stat gauges from chatVar and renders a compact bar row.
 	-- Only rendered when toggle_choicemodule_ultimate is truthy.
 	local function buildGaugeBar(cid)
-		local ok_g, ult_on = pcall(getGlobalVar, "toggle_choicemodule_ultimate")
-		if not ok_g or not ult_on or ult_on == "false" or ult_on == "0" then
+		local ult_on = getGlobalVar(cid, "toggle_choicemodule_ultimate")
+		if not ult_on or ult_on == "false" or ult_on == "0" then
 			return ""
 		end
 		local STATS = {"STR","DEX","CON","INT","WIS","CHA"}
@@ -152,9 +153,9 @@ listenEdit("editDisplay", function(t, d)
 			-- Determine ultimate-ready glow class (BETA)
 			local ult_class = ""
 			if stat then
-				local ok_u, ult_on = pcall(getGlobalVar, "toggle_choicemodule_ultimate")
-				if ok_u and ult_on and ult_on ~= "false" and ult_on ~= "0" then
-					local gauge = tonumber(getChatVar(t, "ChoiceModule.ult_"..stat)) or 0
+				local ult_on = getGlobalVar(tid, "toggle_choicemodule_ultimate")
+				if ult_on and ult_on ~= "false" and ult_on ~= "0" then
+					local gauge = tonumber(getChatVar(tid, "ChoiceModule.ult_"..stat)) or 0
 					if gauge >= 5 then
 						ult_class = " choicemodule-ult-ready"
 					end
@@ -164,21 +165,12 @@ listenEdit("editDisplay", function(t, d)
 		end)
 	else
 		-- Convert <?checked ...?> dice result → interactive dice table UI
-		-- Supports optional ally (보조) fields: ally_rolled, ally_outcome, final_outcome (Phase 4)
-		d, r = d:gsub("<%?checked(.-)%?>", function(block)
-			local rolled  = block:match("rolled=(%d+)")
-			local thresh  = block:match("threshold=[^%d]*(%d+)")
-			local outcome = block:match("outcome={%s*`?([%w%s]+)[`%s}]")
-			if not rolled or not thresh or not outcome then return end
-			outcome = outcome:match("^%s*(.-)%s*$") or outcome
+		-- Supports new 3-block format (checked + support + final) and legacy single-block format
 
-			local ally_rolled = block:match("ally_rolled=(%d+)")
-			local ao = (block:match("ally_outcome={%s*`?([%w%s]+)[`%s}]") or ""):match("^%s*(.-)%s*$")
-			local fo = (block:match("final_outcome={%s*`?([%w%s]+)[`%s}]") or ""):match("^%s*(.-)%s*$")
-			local has_ally = ally_rolled and ao ~= "" and fo ~= ""
-
-			-- In visible mode, show the final (ally-upgraded) outcome; hidden mode → [ ? ]
-			local ov = has_ally and fo or outcome
+		-- Shared renderer: builds the dice table HTML for both formats
+		local function renderDiceHTML(rolled, thresh, outcome, ally_rolled, ally_o, final_o)
+			local has_ally = ally_rolled and ally_o and ally_o ~= "" and final_o and final_o ~= ""
+			local ov = has_ally and final_o or outcome
 			local function esc(s) return (s or ""):gsub("%%","%%%%") end
 
 			-- Ally summary block shown only when dice results are visible (non-hidden mode)
@@ -187,8 +179,8 @@ listenEdit("editDisplay", function(t, d)
 				ally_block =
 					"{{#if_pure {{? {{gettempvar::cmh}}=0}}}}" ..
 					"<div class=\"dicemodule-ally\">" ..
-					"🤝 보조: [ " .. esc(ally_rolled) .. " ] → " .. esc(ao) ..
-					" ｜ 최종: [ " .. esc(fo) .. " ]" ..
+					"🤝 보조: [ " .. esc(ally_rolled) .. " ] → " .. esc(ally_o) ..
+					" ｜ 최종: [ " .. esc(final_o) .. " ]" ..
 					"</div>{{/}}"
 			end
 
@@ -237,6 +229,37 @@ listenEdit("editDisplay", function(t, d)
 				"<td><b>[ ? ]{{/}}\n" ..
 				"</td></tr><tr></table>" .. ally_block .. "<div></div>\n" ..
 				"{{#if_pure {{gettempvar::cmt}}}}</details>{{/}}"
+		end
+
+		-- First pass: new 3-block format (<?checked?> + <?'ally' support checked?> + <?final checked?>)
+		d = d:gsub("<%?checked(.-)%?>%s*<%?'([^']*)'%s+support%s+checked(.-)%?>%s*<%?final%s+checked(.-)%?>",
+			function(b1, _ally_name, b2, b3)
+				local rolled = b1:match("rolled=(%d+)")
+				local thresh = b1:match("threshold=[^%d]*(%d+)")
+				local outcome_raw = b1:match("outcome={%s*`([^`]+)`")
+				if not rolled or not thresh or not outcome_raw then return end
+				local outcome = outcome_raw:match("^%s*(.-)%s*$") or outcome_raw
+				local ally_rolled = b2:match("rolled=(%d+)")
+				local ally_o_raw = b2:match("outcome={%s*`([^`]+)`")
+				local ally_o = ally_o_raw and (ally_o_raw:match("^%s*(.-)%s*$") or ally_o_raw) or ""
+				local final_o_raw = b3:match("outcome={%s*`([^`]+)`")
+				local final_o = final_o_raw and (final_o_raw:match("^%s*(.-)%s*$") or final_o_raw) or ""
+				return renderDiceHTML(rolled, thresh, outcome,
+					ally_rolled, ally_o ~= "" and ally_o or nil, final_o ~= "" and final_o or nil)
+			end)
+
+		-- Second pass: legacy/standalone checked blocks (single block, may have old ally fields)
+		d = d:gsub("<%?checked(.-)%?>", function(block)
+			local rolled  = block:match("rolled=(%d+)")
+			local thresh  = block:match("threshold=[^%d]*(%d+)")
+			local outcome = block:match("outcome={%s*`?([%w%s]+)[`%s}]")
+			if not rolled or not thresh or not outcome then return end
+			outcome = outcome:match("^%s*(.-)%s*$") or outcome
+			local ally_rolled = block:match("ally_rolled=(%d+)")
+			local ao = (block:match("ally_outcome={%s*`?([%w%s]+)[`%s}]") or ""):match("^%s*(.-)%s*$")
+			local fo = (block:match("final_outcome={%s*`?([%w%s]+)[`%s}]") or ""):match("^%s*(.-)%s*$")
+			return renderDiceHTML(rolled, thresh, outcome,
+				ally_rolled, ao ~= "" and ao or nil, fo ~= "" and fo or nil)
 		end)
 	end
 	return c..d
