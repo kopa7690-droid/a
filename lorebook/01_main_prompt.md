@@ -30,16 +30,50 @@
 
 # Choice Module
 - Always provide a list of suggestions for the user's next possible inputs at the end of every response.
-- The list should contain at least one and up to five suggestions, formatted as follows:
+- The list must always contain exactly five suggestions, each assigned a different stat from STR/DEX/CON/INT/WIS/CHA (use 5 of the 6 stats, all different). Add `stat={ STR|DEX|CON|INT|WIS|CHA }` to every Suggestion tag.
+- Formatted as follows:
 <Choice>
-{{#if_pure {{equal::{{getglobalvar::toggle_choicemodule_type}}::0}}}}<Suggestion id={ 1 }>
+{{#if_pure {{equal::{{getglobalvar::toggle_choicemodule_type}}::0}}}}<Suggestion id={ 1 } stat={ `STR|DEX|CON|INT|WIS|CHA` }>
   <Scene seed={ `Basic or 기본, etc.` }>
     {{gettempvar::length}}, consistent with their established character.
   </Scene>
 </Suggestion>
 
 {{/}}{{#if {{less::{{getglobalvar::toggle_choicemodule_type}}::3}}}}
-<Suggestion id={ {{? ({{getglobalvar::toggle_choicemodule_type}}=0)+1}} }>
+<Suggestion id={ {{? ({{getglobalvar::toggle_choicemodule_type}}=0)+1}} } stat={ `STR|DEX|CON|INT|WIS|CHA` }>
+  <Scene seed={ `Context-relevant keywords such as abilities, skills, traits, topics, objects, or etc.` }>
+    {{gettempvar::length}}, inspired by the given seed keywords.
+  </Scene>{{#if_pure {{not_equal::{{getglobalvar::toggle_choicemodule_type}}::1}}}}
+  <Check for={ `Specific action, ability, situation, or etc.` }
+    comment={ `Brief in-world reflections, responses, inner thoughts, meta-comments, flavor quips, or etc., from nearby NPC or {{user}}, about the likelihood, potential consequences, or etc.` }
+    difficulty_class={ `1 (trivial) to 20 (nearly impossible)` } />{{/}}{{#if_pure {{equal::{{getglobalvar::toggle_choicemodule_type}}::1}}}}
+  <Bubble>
+	nearby NPC or {{user}}: Brief responses, reflections, inner thoughts, flavor quips, or etc.
+  </Bubble>{{/}}
+</Suggestion>
+<Suggestion id={ {{? ({{getglobalvar::toggle_choicemodule_type}}=0)+2}} } stat={ `STR|DEX|CON|INT|WIS|CHA` }>
+  <Scene seed={ `Context-relevant keywords such as abilities, skills, traits, topics, objects, or etc.` }>
+    {{gettempvar::length}}, inspired by the given seed keywords.
+  </Scene>{{#if_pure {{not_equal::{{getglobalvar::toggle_choicemodule_type}}::1}}}}
+  <Check for={ `Specific action, ability, situation, or etc.` }
+    comment={ `Brief in-world reflections, responses, inner thoughts, meta-comments, flavor quips, or etc., from nearby NPC or {{user}}, about the likelihood, potential consequences, or etc.` }
+    difficulty_class={ `1 (trivial) to 20 (nearly impossible)` } />{{/}}{{#if_pure {{equal::{{getglobalvar::toggle_choicemodule_type}}::1}}}}
+  <Bubble>
+	nearby NPC or {{user}}: Brief responses, reflections, inner thoughts, flavor quips, or etc.
+  </Bubble>{{/}}
+</Suggestion>
+<Suggestion id={ {{? ({{getglobalvar::toggle_choicemodule_type}}=0)+3}} } stat={ `STR|DEX|CON|INT|WIS|CHA` }>
+  <Scene seed={ `Context-relevant keywords such as abilities, skills, traits, topics, objects, or etc.` }>
+    {{gettempvar::length}}, inspired by the given seed keywords.
+  </Scene>{{#if_pure {{not_equal::{{getglobalvar::toggle_choicemodule_type}}::1}}}}
+  <Check for={ `Specific action, ability, situation, or etc.` }
+    comment={ `Brief in-world reflections, responses, inner thoughts, meta-comments, flavor quips, or etc., from nearby NPC or {{user}}, about the likelihood, potential consequences, or etc.` }
+    difficulty_class={ `1 (trivial) to 20 (nearly impossible)` } />{{/}}{{#if_pure {{equal::{{getglobalvar::toggle_choicemodule_type}}::1}}}}
+  <Bubble>
+	nearby NPC or {{user}}: Brief responses, reflections, inner thoughts, flavor quips, or etc.
+  </Bubble>{{/}}
+</Suggestion>
+<Suggestion id={ {{? ({{getglobalvar::toggle_choicemodule_type}}=0)+4}} } stat={ `STR|DEX|CON|INT|WIS|CHA` }>
   <Scene seed={ `Context-relevant keywords such as abilities, skills, traits, topics, objects, or etc.` }>
     {{gettempvar::length}}, inspired by the given seed keywords.
   </Scene>{{#if_pure {{not_equal::{{getglobalvar::toggle_choicemodule_type}}::1}}}}
@@ -51,7 +85,7 @@
   </Bubble>{{/}}
 </Suggestion>
 {{/}}{{#if {{equal::{{getglobalvar::toggle_choicemodule_type}}::3}}}}
-<Suggestion id={ 1 }>
+<Suggestion id={ 1 } stat={ `STR` }>
 <Scene seed={ `Basic or 기본, etc.` }>
 {{gettempvar::length}}, consistent with their established character.
 </Scene>
@@ -60,7 +94,7 @@ nearby NPC or {{user}}: Brief responses, reflections, inner thoughts, flavor qui
 </Bubble>
 </Suggestion>
 
-<Suggestion id={ 2 }>
+<Suggestion id={ 2 } stat={ `DEX` }>
 <Scene seed={ `Positive, Favorable, or etc.` }>
 {{gettempvar::length}} that would result in a positive or favorable interaction.
 </Scene>
@@ -69,7 +103,7 @@ nearby NPC or {{user}}: Brief responses, reflections, inner thoughts, flavor qui
 </Bubble>
 </Suggestion>
 
-<Suggestion id={ 3 }>
+<Suggestion id={ 3 } stat={ `CON` }>
 <Scene seed={ `Witty, Sarcastic, Humorous, or etc.` }>
 {{gettempvar::length}} that takes a clever, sarcastic, or humorous approach to the situation, possibly breaking tension or catching others off-guard. This response should still reflect their personality, but with a twist of wit or mischief.
 </Scene>
@@ -77,8 +111,26 @@ nearby NPC or {{user}}: Brief responses, reflections, inner thoughts, flavor qui
 nearby NPC or {{user}}: Brief responses, reflections, inner thoughts, flavor quips, or etc.
 </Bubble>
 </Suggestion>
+
+<Suggestion id={ 4 } stat={ `INT` }>
+<Scene seed={ `Context-relevant keywords such as abilities, skills, traits, topics, objects, or etc.` }>
+{{gettempvar::length}}, inspired by the given seed keywords.
+</Scene>
+<Bubble>
+nearby NPC or {{user}}: Brief responses, reflections, inner thoughts, flavor quips, or etc.
+</Bubble>
+</Suggestion>
+
+<Suggestion id={ 5 } stat={ `WIS` }>
+<Scene seed={ `Context-relevant keywords such as abilities, skills, traits, topics, objects, or etc.` }>
+{{gettempvar::length}}, inspired by the given seed keywords.
+</Scene>
+<Bubble>
+nearby NPC or {{user}}: Brief responses, reflections, inner thoughts, flavor quips, or etc.
+</Bubble>
+</Suggestion>
 {{/}}
-<!-- Add more suggestions in same format as needed -->
+<!-- Always exactly 5 suggestions. Assign each a different stat from STR/DEX/CON/INT/WIS/CHA; use 5 of the 6 stats (all different). Choose stat values contextually to best match each suggestion's nature. -->
 {{#if_pure {{getglobalvar::toggle_ChoiceModule.korean}}}}<!-- Write text nodes and attribute values in Korean. -->
 {{/}}{{#if_pure {{getglobalvar::toggle_choicemodule_diversity}}}}<!-- Ensure engaging diversity in the options, avoiding repetition of similar choices. -->
 {{/}}{{#if_pure {{getglobalvar::toggle_choicemodule_proactivity}}}}<!-- Create proactive suggestions for seamless advance, rather than maintaining the status quo. --> 
@@ -99,3 +151,4 @@ nearby NPC or {{user}}: Brief responses, reflections, inner thoughts, flavor qui
 - `toggle_ChoiceModule.korean`: 한국어 출력 모드
 - `toggle_choicemodule_diversity`: 다양성 강조 모드
 - `toggle_choicemodule_proactivity`: 능동적 제안 모드
+- 각 선택지에는 `stat={ STR|DEX|CON|INT|WIS|CHA }` 속성이 필수이며, 5개 선택지 모두 서로 다른 스탯을 사용해야 합니다.
