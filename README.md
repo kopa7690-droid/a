@@ -36,18 +36,27 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 
 ```
 📦 choice-module-capsule-extension
-├── 📄 README.md                    # 이 문서
-├── 📂 lorebook/                    # 로어북 항목들
-│   ├── 01_main_prompt.md           # 메인 시스템 프롬프트 (Choice Module 지시문)
-│   ├── 02_request_omit_choice.md   # 선택지 제거 규칙
-│   ├── 03_request_fix_dice.md      # 주사위 수정 규칙
-│   ├── 04_display_menu.md          # 메뉴 표시 규칙
-│   ├── 05_output_remove_dice.md    # 주사위 출력 제거 규칙
-│   └── 06_display_lazy.md          # 지연 로딩 표시 규칙
+├── 📄 README.md                              # 이 문서
+├── 📂 lorebook/                              # 로어북 항목들
+│   ├── 01_main_prompt.md                     # 메인 시스템 프롬프트 (Choice Module 지시문)
+│   ├── 02_request_omit_choice.md             # 선택지 제거 규칙
+│   ├── 03_request_fix_dice.md                # 주사위 수정 규칙
+│   ├── 04_display_menu.md                    # 메뉴 표시 규칙
+│   ├── 05_output_remove_dice.md              # 주사위 출력 제거 규칙
+│   ├── 06_display_lazy.md                    # 지연 로딩 표시 규칙
+│   ├── 07_manifest_lb.md                     # LightBoard 매니페스트
+│   ├── 08_choicemodule_lb.md                 # LightBoard 태스크 할당
+│   ├── 09_choicemodule_lb_job.md             # LightBoard 작업 설명
+│   ├── 10_choicemodule_lb_format.md          # LightBoard 출력 형식
+│   ├── 11_choicemodule_lb_thoughts.md        # LightBoard 단계별 사고
+│   ├── 12_choicemodule_lb_onoutput.md        # LightBoard 출력 후처리 (Lua)
+│   ├── 13_choicemodule_lb_interaction.md     # LightBoard 인터랙션 태스크
+│   └── 14_choicemodule_lb_thoughts_interaction.md  # LightBoard 인터랙션 단계별 사고
 ├── 📂 scripts/
-│   └── main.lua                    # 메인 Lua 트리거 스크립트
+│   ├── main.lua                              # 메인 Lua 트리거 스크립트
+│   └── actions.lua                           # 선택지 액션 Lua 스크립트 (ChoiceModule.actions)
 └── 📂 docs/
-    └── usage.md                    # 상세 사용법 가이드
+    └── usage.md                              # 상세 사용법 가이드
 ```
 
 ---
@@ -64,7 +73,12 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 | `toggle_choicemodule_menu` | boolean | 메뉴 버튼 표시 여부 |
 | `toggle_choicemodule_dice` | number (0 or 1) | 주사위 타입 (0=D100, 1=D20) |
 | `toggle_choicemodule_hidden` | boolean | 주사위 결과 숨김 여부 |
+| `toggle_choicemodule_diversity` | boolean | 다양성 강조 모드 |
+| `toggle_choicemodule_proactivity` | boolean | 능동적 제안 모드 |
 | `toggle_ChoiceModule.mode` | boolean | 모듈 전체 활성/비활성 |
+| `toggle_ChoiceModule.korean` | boolean | 한국어 출력 모드 |
+| `toggle_ChoiceModule.noLorebook` | number | 1이면 LightBoard 로어북 참조 비활성 |
+| `toggle_lightboard.thoughts` | number | LightBoard 사고 단계 상세도 (3 미만이면 8단어 제한) |
 
 ---
 
@@ -95,11 +109,39 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 | 항목 | 타입 | 설명 |
 |------|------|------|
 | `⚖️ Choice Module: Capsule Extension 💊` | lorebook | AI에게 선택지 형식을 지시하는 시스템 프롬프트 |
+| `---` | (구분선) | 시각적 구분용 비활성 항목 |
+| `manifest.lb` | lorebook | LightBoard 통합 매니페스트 |
+| `ChoiceModule.lb` | lorebook | LightBoard 모드 태스크 할당 지시문 |
+| `ChoiceModule.lb.job` | lorebook | LightBoard 모드 작업 설명 |
+| `ChoiceModule.lb.format` | lorebook | LightBoard 모드 출력 형식 템플릿 |
+| `ChoiceModule.lb.thoughts` | lorebook | LightBoard 단계별 사고 유도 |
+| `ChoiceModule.lb.onOutput` | lorebook | LightBoard 출력 후처리 Lua 함수 |
+| `ChoiceModule.lb.interaction` | lorebook | LightBoard 인터랙션 태스크 업데이트 |
+| `ChoiceModule.lb.thoughts-interaction` | lorebook | LightBoard 인터랙션 단계별 사고 유도 |
+| `ChoiceModule.actions` | lorebook | 버튼 액션 처리 Lua 스크립트 |
 | `🗑️ Request: Omit Choice` | editprocess | `<Choice>` 태그 패턴을 감지해 선택지 블록을 제거 |
 | `🗑️ Request: Fix Dice` | editprocess | 구형 주사위 포맷을 신형 포맷으로 변환 |
 | `🖥️ Display: Menu` | editdisplay | 마지막 메시지에 모듈 메뉴 버튼 추가 |
 | `🖨️ Output: Remove Dice` | editoutput | 출력에서 주사위 원문 태그 제거 |
 | `🖥️ Display: Lazy` | editdisplay | 선택지를 접을 수 있는 지연 로딩 UI 표시 |
+
+---
+
+## 🔌 LightBoard 통합 (LightBoard Integration)
+
+**LightBoard 모드**는 선택지 생성을 별도의 AI 호출(독립 생성)로 처리하는 고급 통합 방식입니다.  
+`toggle_ChoiceModule.mode`를 LightBoard 모드로 설정하면 아래 항목들이 활성화됩니다.
+
+| 항목 | 역할 |
+|------|------|
+| `manifest.lb` | LightBoard 호출 시 포함할 컨텍스트 범위를 정의 |
+| `ChoiceModule.lb` | 태스크 지시문 |
+| `ChoiceModule.lb.job` | 작업 설명 |
+| `ChoiceModule.lb.format` | 출력 XML 형식 템플릿 |
+| `ChoiceModule.lb.thoughts` | 단계별 추론 유도 |
+| `ChoiceModule.lb.onOutput` | 출력 결과의 ID 타임스탬프 처리 |
+| `ChoiceModule.lb.interaction` | 유저 인터랙션 반영 |
+| `ChoiceModule.lb.thoughts-interaction` | 인터랙션 시 단계별 추론 유도 |
 
 ---
 
@@ -111,6 +153,8 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 
 - **`onButtonClick`**: 선택지 버튼 클릭 이벤트 처리
   - `op` (option): 선택지 선택 및 AI 재생성 처리
+  - `mn` (menu): 선택지 모듈 메뉴 (재생성, 요청+재생성, 삭제)
+  - `mg` (merge): OOC 선택지를 이전 AI 응답에 병합
   - `rr` (reroll): 주사위 리롤 (취소/리롤/강제 성공·실패)
   - `rm` (remove): 특정 선택지 블록 제거
 - **`onOutput`**: AI 응답 출력 후 마지막 채팅 ID 저장
@@ -119,6 +163,14 @@ and performs probability/difficulty-based dice checks when a choice is selected.
   - `<ChoiceModule>` → 접기/펼치기 상세 UI로 변환
   - `<Suggestion>` → 버튼으로 변환
   - `<?checked ...?>` → 주사위 결과 테이블 UI로 변환
+
+### `scripts/actions.lua`
+
+로어북 항목 `ChoiceModule.actions`의 원본 콘텐츠입니다.  
+`main.lua`의 `getLoreBooks()`를 통해 동적으로 로드됩니다.
+
+> **참고**: `@`는 런타임에 `-`로 치환되는 난독화 문자입니다.  
+> 예: `.@` → `.-` (비탐욕 패턴), `@@` → `--` (주석), `@1` → `-1`
 
 ---
 

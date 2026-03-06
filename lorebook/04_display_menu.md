@@ -26,16 +26,7 @@ $
 {{#if {{? {{getglobalvar::toggle_choicemodule_menu}}&!{{getglobalvar::toggle_ChoiceModule.mode}} }} }}
 {{#if {{equal::{{role}}::char}} }}
 {{#if {{? {{lastmessageid}}>0&({{lastmessageid}}={{chat_index}})|({{isfirstmsg}}&({{lastmessageid}}=-1))}}}}
-<p></p>
-<button class="choicemodule-button choicemodule-circle choicemodule-menu"
-        risu-btn="choicemodule_mn_{{chat_index}}">
-  <div class="choicemodule-bubble">선택지 모듈 메뉴</div>
-</button>
-{{#if_pure {{? {{contains::{{lastusermessage}}::* OOC}} & {{contains::{{lastmessage}}::<choice>}} }} }}
-<button class="choicemodule-button choicemodule-circle choicemodule-merge"
-        risu-btn="choicemodule_mg">
-  <div class="choicemodule-bubble">이전 응답에 합치기</div>
-</button>
+<p></p><button class="choicemodule-button choicemodule-circle choicemodule-menu" risu-btn="choicemodule_mn_{{chat_index}}"><div class="choicemodule-bubble">선택지 모듈 메뉴</div></button>{{#if_pure {{? {{contains::{{lastusermessage}}::* OOC}} & {{contains::{{lastmessage}}::<Choice>}} }} }}<button class="choicemodule-button choicemodule-circle choicemodule-merge" risu-btn="choicemodule_mg"><div class="choicemodule-bubble">이전 응답에 합치기</div></button>
 {{/}}
 {{/}}
 {{/}}

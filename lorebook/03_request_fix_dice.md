@@ -23,8 +23,7 @@
 ## 치환 (Replace)
 
 ```
-{{#if_pure {{not::{{getglobalvar::toggle_choicemodule_dice}}}}}}<? checked$1success_probability=$3dice_$4?>{{/}}
-{{#if_pure {{getglobalvar::toggle_choicemodule_dice}}}}<? checked$1difficulty_class=$3dice_rolled=$2dice_$4?>{{/}}
+{{#if_pure {{not::{{getglobalvar::toggle_choicemodule_dice}}}}}}<?checked$1success_probability=$3dice_$4?>{{/}}{{#if_pure {{getglobalvar::toggle_choicemodule_dice}}}}<?checked$1difficulty_class=$3dice_rolled=$2dice_$4?>{{/}}
 ```
 
 ---
