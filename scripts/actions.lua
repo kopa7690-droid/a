@@ -267,9 +267,8 @@ local actions = {
 						local bonus = ASSIST_BONUS[ally_o] or 0
 						if bonus > 0 then
 							final_o = LEVEL_NAME[math.min(user_level + bonus, 5)] or o
-						else
-							ally_o, ally_r = nil, nil
 						end
+						@@ 보조 실패해도 ally_o, ally_r 유지 → 3블록에서 "보조 시도 실패" 표시
 					end
 				end
 				@@ Update fail streak based on the effective final outcome
@@ -310,7 +309,7 @@ comment={ `%s` }
 					o
 				)
 				@@ Blocks 2 & 3: ally support + final result (only when ally assists)
-				if ally_o and final_o ~= o then
+				if ally_o then
 					local ally_name = getEffectiveAllyName(cmc_parts[1])
 					local bonus = ASSIST_BONUS[ally_o] or 0
 					um = um .. string.format([[
@@ -487,9 +486,8 @@ text={ `%s` }
 				local bonus = ASSIST_BONUS[ally_o] or 0
 				if bonus > 0 then
 					final_o = LEVEL_NAME[math.min(user_level + bonus, 5)] or new_o
-				else
-					ally_o, ally_r = nil, nil
 				end
+				@@ 보조 실패해도 ally_o, ally_r 유지
 			end
 		end
 
@@ -519,7 +517,7 @@ text={ `%s` }
 		cd = cd:gsub("%s*<%?final%s+checked.@%?>", "")
 
 		@@ Inject new support/final blocks after block 1 if ally assists
-		if ally_o and final_o ~= new_o then
+		if ally_o then
 			local ally_name = getEffectiveAllyName(cmc_parts[1])
 			local bonus = ASSIST_BONUS[ally_o] or 0
 			local support_block = string.format([[
