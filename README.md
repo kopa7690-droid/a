@@ -52,22 +52,6 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 
 ---
 
-## 🚀 설치 방법 (Installation)
-
-### RisuAI
-
-1. 이 저장소를 다운로드합니다.
-2. RisuAI에서 캐릭터 또는 전역 로어북을 열고, `lorebook/` 폴더의 항목들을 순서대로 추가합니다.
-3. `scripts/main.lua` 내용을 **Start** 타입 트리거 Lua 항목에 추가합니다.
-4. 아래 [설정 변수](#️-설정-변수-configuration) 섹션을 참조하여 원하는 방식으로 설정합니다.
-
-### SillyTavern
-
-- 해당 모듈의 로어북 항목들을 World Info(세계 정보)에 추가하고,  
-  Lua 스크립트를 적절한 후크(hook)에 연결합니다.
-
----
-
 ## ⚙️ 설정 변수 (Configuration)
 
 모듈의 동작은 아래 전역 변수(Global Variables)로 제어합니다:
