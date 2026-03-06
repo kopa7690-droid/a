@@ -60,7 +60,6 @@ toggle_choicemodule_type = 0
 toggle_choicemodule_length = 1
 toggle_choicemodule_perspective = false
 toggle_choicemodule_menu = true
-toggle_choicemodule_dice = 0
 toggle_choicemodule_hidden = false
 toggle_choicemodule_diversity = false
 toggle_choicemodule_proactivity = false
@@ -126,8 +125,7 @@ AI가 응답 끝에 출력해야 하는 XML 형식입니다.
   <Suggestion id="1">
     <Check for="전투 행동 설명"
           comment="이 행동의 성공 확률"
-          success_probability=70
-          dice_outcome="공격 성공 여부"/>
+          difficulty_class=12 />
     적에게 검을 휘두른다.
   </Suggestion>
 </ChoiceModule>
@@ -156,28 +154,18 @@ AI가 응답 끝에 출력해야 하는 XML 형식입니다.
 
 ## 주사위 판정 상세
 
-### D100 모드 (`toggle_choicemodule_dice = 0`)
-
-- 1~100 사이의 난수를 굴립니다.
-- **성공 확률(success_probability)**: 이 값 이하로 굴리면 성공.
-
-```
- 1 ~ 5  : 🌟 Critical Success
- 6 ~ 성공확률 : ✅ Success
-성공확률+1 ~ 94 : ❌ Failure
-95 ~ 100 : 💀 Critical Failure
-```
-
-### D20 모드 (`toggle_choicemodule_dice = 1`)
+### D20 모드 (6단계 판정)
 
 - 1~20 사이의 난수를 굴립니다.
-- **난이도(difficulty_class, DC)**: 이 값 이상으로 굴리면 성공.
+- **난이도(difficulty_class, DC)**: 판정 기준값 (기본값 10)
 
 ```
- 1     : 💀 Critical Failure
- 2 ~ DC-1 : ❌ Failure
-DC ~ 19 : ✅ Success
-20     : 🌟 Critical Success
+20       : 🌟 Critical Success
+DC+3~19  : ✅ Success
+DC~DC+2  : 🔼 Narrow Success
+DC-3~DC-1: 🔽 Narrow Failure
+2~DC-4   : ❌ Failure
+1        : 💀 Critical Failure
 ```
 
 ---
@@ -192,10 +180,11 @@ DC ~ 19 : ✅ Success
 |------|------|
 | Cancel | 취소 |
 | Reroll | 랜덤 재굴림 |
-| Force Success | 성공 범위 내 강제 굴림 |
-| Force Critical Success | 최고 결과 강제 |
-| Force Failure | 실패 범위 내 강제 굴림 |
-| Force Critical Failure | 최악의 결과 강제 |
+| Force Success | Success 범위 내 강제 굴림 (DC+3~19) |
+| Force Critical Success | 최고 결과 강제 (20) |
+| Force Narrow Success | Narrow Success 범위 내 강제 굴림 (DC~DC+2) |
+| Force Failure | Failure 범위 내 강제 굴림 (2~DC-4) |
+| Force Critical Failure | 최악의 결과 강제 (1) |
 
 ### ✂️ 선택지 제거 버튼 (`choicemodule_rm_N_M`)
 

@@ -32,9 +32,8 @@
     {{gettempvar::length}}, inspired by the given seed keywords.
   </Scene>{{#if_pure {{not_equal::{{getglobalvar::toggle_choicemodule_type}}::1}}}}
   <Check for={ `Specific action, ability, situation, or etc.` }
-    comment={ `Brief in-world reflections, responses, inner thoughts, meta-comments, flavor quips, or etc., from nearby NPC or {{user}}, about the likelihood, potential consequences, or etc.` }{{#if_pure {{not::{{getglobalvar::toggle_choicemodule_dice}}}}}}
-    success_probability={ `0% (impossible or invalid) to 100% (trivial or guaranteed)` } />{{/}}{{#if_pure {{getglobalvar::toggle_choicemodule_dice}}}}
-    difficulty_class={ `1 (trivial) to 20 (nearly impossible)` } />{{/}}{{/}}{{#if_pure {{equal::{{getglobalvar::toggle_choicemodule_type}}::1}}}}
+    comment={ `Brief in-world reflections, responses, inner thoughts, meta-comments, flavor quips, or etc., from nearby NPC or {{user}}, about the likelihood, potential consequences, or etc.` }
+    difficulty_class={ `1 (trivial) to 20 (nearly impossible)` } />{{/}}{{#if_pure {{equal::{{getglobalvar::toggle_choicemodule_type}}::1}}}}
   <Bubble>
 	Nearby NPC or {{user}}: Brief responses, reflections, inner thoughts, flavor quips, or etc.
   </Bubble>{{/}}
