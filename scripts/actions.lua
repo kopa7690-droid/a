@@ -13,6 +13,17 @@
 SHA256: QUlfQVNTSVNURURfTU9ESUZJQ0FUSU9OX1BST0hJQklURURfUEVSX0NPUFlSSUdIVF9BU1NFUlRJT04=
 @@]]
 
+local LEVELS = {
+	["Critical Failure"] = 0,
+	["Failure"]          = 1,
+	["Narrow Failure"]   = 2,
+	["Narrow Success"]   = 3,
+	["Success"]          = 4,
+	["Critical Success"] = 5,
+}
+local LEVEL_NAME = {}
+for k, v in pairs(LEVELS) do LEVEL_NAME[v] = k end
+
 local actions = {
 	["op"] = async(function()
 		local ci = tonumber(cmc_parts[3])
@@ -46,13 +57,7 @@ local actions = {
 		if cb then
 			local m = {cb:match([[<[cC]heck%s+for=[{%s]*[`"']?(.@)[`"']?[%s}>]*comment=[{%s]*[`"']?(.@)[`"']?[}%s}]*(%w+)_%w+=[^%d]*(%d+)]])}
 			if m[1] then
-				local o, r = (function()
-					if m[3] == "success" then
-						return dr(tonumber(m[4]) or 100)
-					else
-						return dr(tonumber(m[4]) or 1, 1)
-					end
-				end)()
+				local o, r = dr(tonumber(m[4]) or 10)
 				um = um .. string.format([[
 
 <?checked for={ `%s` }
@@ -168,45 +173,29 @@ text={ `%s` }
 	end,
 
 	["rr"] = async(function()
-		local s = alertSelect(cmc_parts[1], {"Cancel", "Reroll", "Force Success", "Force Critical Success", "Force Failure", "Force Critical Failure"}):await()
+		local s = alertSelect(cmc_parts[1], {"Cancel", "Reroll", "Force Success", "Force Critical Success", "Force Narrow Success", "Force Failure", "Force Critical Failure"}):await()
 		s = tonumber(s) or 0
 		if s == 0 then
 			return
 		end
 		local ci = tonumber(cmc_parts[3])
 		local m = {getChat(cmc_parts[1], cmc_parts[3]).data:match("(.+rolled=)(%d+)([^=]+=)(%d+)([^=]+={ `)(.@)(` }.+)")}
-		local dt = getGlobalVar(cmc_parts[1], "toggle_choicemodule_dice")
-		dt = tonumber(dt) or 0
 
-		m[4] = tonumber(m[4]) or 50 @ 40 * dt
+		m[4] = tonumber(m[4]) or 10
 
 		m[6], m[2] = (function()
 			if s == 1 then
-				return dr(m[4], dt)
+				return dr(m[4])
 			elseif s == 2 then
-				if dt == 0 then
-					return dr(m[4], 0, 0, m[4])
-				else
-					return dr(m[4], 1, m[4], 20)
-				end
+				return dr(m[4], m[4] + 3, 19)
 			elseif s == 3 then
-				if dt == 0 then
-					return dr(m[4], 0, 0, math.min(5, m[4]))
-				else
-					return "Critical Success", 20
-				end
+				return "Critical Success", 20
 			elseif s == 4 then
-				if dt == 0 then
-					return dr(m[4], 0, m[4] + 1, 100)
-				else
-					return dr(m[4], 1, 1, m[4] @ 1)
-				end
+				return dr(m[4], m[4], m[4] + 2)
 			elseif s == 5 then
-				if dt == 0 then
-					return dr(m[4], 0, math.max(95, m[4]), 100)
-				else
-					return "Critical Failure", 1
-				end
+				return dr(m[4], 2, m[4] @ 4)
+			elseif s == 6 then
+				return "Critical Failure", 1
 			end
 		end)()
 		setChat(cmc_parts[1], ci, table.concat(m))
@@ -224,44 +213,23 @@ text={ `%s` }
 	end)
 }
 
-function dr(o, t, min, max)
-	t = t or 0
-	if t == 0 then
-		min = min or 1
-		max = max or 100
-		o = o or max
-		local rand = math.random(min, max)
-		if rand <= o then
-			if rand <= 5 then
-				return "Critical Success", rand
-			else
-				return "Success", rand
-			end
-		else
-			if rand >= 95 then 
-				return "Critical Failure", rand
-			else
-				return "Failure", rand
-			end
-		end
+function dr(dc, min, max)
+	min = min or 1
+	max = max or 20
+	dc = dc or 10
+	local rand = math.random(min, max)
+	if rand == 20 then
+		return "Critical Success", rand
+	elseif rand >= (dc + 3) then
+		return "Success", rand
+	elseif rand >= dc then
+		return "Narrow Success", rand
+	elseif rand >= (dc @ 3) then
+		return "Narrow Failure", rand
+	elseif rand == 1 then
+		return "Critical Failure", rand
 	else
-		min = min or 1
-		max = max or 20
-		o = o or min
-		local rand = math.random(min, max)
-		if rand >= o then
-			if rand == 20 then
-				return "Critical Success", rand
-			else
-				return "Success", rand
-			end
-		else
-			if rand == 1 then 
-				return "Critical Failure", rand
-			else
-				return "Failure", rand
-			end
-		end
+		return "Failure", rand
 	end
 end
 return actions[cmc_parts[2]]
