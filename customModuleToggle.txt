@@ -15,13 +15,11 @@ choicemodule_dice=⚖️ 주사위 모드
 =⚖️ LightBoard=divider
 lightboard.thoughts=⚖️ LightBoard 사고 단계=select=0,1,2,3,4,5
 =⚖️ 확장 기능=divider
-{{#if_pure {{not::{{getglobalvar::toggle_choicemodule_auto}}}}}}
 choicemodule_difficulty_mod=⚖️⚙️ 난이도 보정=select=-5,-4,-3,-2,-1,0,1,2,3,4,5
 choicemodule_dc_min=⚖️⚙️ 최소 DC=select=1,2,3,4,5
 choicemodule_dc_max=⚖️⚙️ 최대 DC=select=15,16,17,18,19,20
 choicemodule_ally=⚖️⚙️ 파티원 보조
 choicemodule_ally_name=⚖️⚙️ 파티원 이름=input
-{{/}}
 choicemodule_ultimate=⚖️⚙️ 궁극기 시스템
 choicemodule_auto=⚖️⚙️ AI 자동 판단
 ==groupEnd
