@@ -20,12 +20,11 @@
 - Ensure engaging diversity in the options, avoiding repetition of similar choices.{{/}}{{#if_pure {{getglobalvar::toggle_choicemodule_proactivity}}}}
 - Create proactive suggestions for seamless advance, rather than maintaining the status quo.{{/}}
 - Use `Check` only for appropriate cases.{{#if_pure {{getglobalvar::toggle_ChoiceModule.korean}}}}
-- User Request: Write text nodes and attribute values in Korean.{{/}}{{#if_pure {{getglobalvar::toggle_choicemodule_auto}}}}
+- User Request: Write text nodes and attribute values in Korean.{{/}}
 - Before listing suggestions, output a <Director> block analyzing the current scene:
   • Tension: Assess the intensity of the current situation (low/medium/high/critical).
   • AllyReady: Based on nearby NPCs and party members, determine if an ally would naturally help the user. Provide the character's name if available.
   • DCRange: Suggest an appropriate difficulty range (D20 scale) for this scene based on context, stakes, and character capabilities.
-{{/}}
 ```
 
 ---
@@ -40,4 +39,4 @@ LightBoard 모드에서 AI에게 부여하는 태스크 지시문입니다.
 - `toggle_choicemodule_diversity`: 다양한 선택지 생성 지시
 - `toggle_choicemodule_proactivity`: 능동적인 진행 제안 지시
 - `toggle_ChoiceModule.korean`: 한국어 출력 요청
-- `toggle_choicemodule_auto`: AI 자동 판단 모드 활성화 시, `<Director>` 블록 출력 지시 추가. AI가 긴장도·파티원 보조 가능 여부·DC 범위를 자동으로 판단합니다.
+- `<Director>` 블록은 항상 출력됩니다. AI가 현재 장면의 긴장도(Tension), 파티원 보조 가능 여부(AllyReady), DC 범위(DCRange)를 자동으로 판단합니다. 이 블록은 `onOutput`에서 파싱 후 chatVar에 저장되고 출력에서 제거됩니다.

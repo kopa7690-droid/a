@@ -93,4 +93,4 @@
 - `toggle_choicemodule_proactivity`: 능동적 제안 모드
 - 각 선택지에는 `stat={ STR|DEX|CON|INT|WIS|CHA }` 속성이 필수이며, 5개 선택지 모두 서로 다른 스탯을 사용해야 합니다.
 - 첫 번째 선택지(id=1)는 Check 없는 기본 행동, 나머지 4개(id=2~5)는 Check 포함 가능 (Mix 모드 고정).
-- **궁극기 시스템**: `toggle_choicemodule_ultimate = true`일 때 각 스탯별 게이지(chatVar: `ChoiceModule.ult_STR` 등)가 충전되며, FULL(5/5) 상태에서 해당 스탯 선택 시 무조건 Critical Success 발동. 자세한 내용은 `docs/usage.md` 참조.
+- **궁극기 시스템**: 각 스탯별 게이지(chatVar: `ChoiceModule.ult_STR` 등)가 충전되며, FULL(5/5) 상태에서 해당 스탯 선택 시 무조건 Critical Success 발동. 자세한 내용은 `docs/usage.md` 참조.
