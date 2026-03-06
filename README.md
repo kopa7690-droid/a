@@ -23,7 +23,7 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 | 기능 | 설명 |
 |------|------|
 | 🎯 자동 선택지 생성 | AI 응답마다 1~5개의 다음 행동 선택지를 자동으로 제시 |
-| 🎲 주사위 판정 | D100(백분율) 또는 D20 방식 지원, 성공/실패/크리티컬 결정 |
+| 🎲 주사위 판정 | D20 방식의 6단계 판정: Critical/Success/Narrow/Failure/Critical 결정 |
 | 🔄 리롤 | 주사위 결과 재굴림 및 강제 성공/실패 옵션 |
 | 📋 선택지 병합 | 이전 응답에 선택지 결과를 병합하는 기능 |
 | 🦥 지연 로딩 | 선택지를 필요할 때만 불러오는 Lazy Load 지원 |
@@ -71,7 +71,6 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 | `toggle_choicemodule_length` | number (0–4) | 선택지 텍스트 길이 (0=상세, 1=일반, 2=짧게, 3=간결, 4=한 줄) |
 | `toggle_choicemodule_perspective` | boolean | NPC 관점 선택지 포함 여부 |
 | `toggle_choicemodule_menu` | boolean | 메뉴 버튼 표시 여부 |
-| `toggle_choicemodule_dice` | number (0 or 1) | 주사위 타입 (0=D100, 1=D20) |
 | `toggle_choicemodule_hidden` | boolean | 주사위 결과 숨김 여부 |
 | `toggle_choicemodule_diversity` | boolean | 다양성 강조 모드 |
 | `toggle_choicemodule_proactivity` | boolean | 능동적 제안 모드 |
@@ -84,23 +83,18 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 
 ## 🎲 주사위 시스템 (Dice System)
 
-### D100 방식 (`toggle_choicemodule_dice = 0`)
+### D20 방식
 
-| 결과 | 조건 |
-|------|------|
-| 🌟 Critical Success | 롤 ≤ 5 |
-| ✅ Success | 롤 ≤ 성공 확률(threshold) |
-| ❌ Failure | 롤 > 성공 확률 |
-| 💀 Critical Failure | 롤 ≥ 95 |
-
-### D20 방식 (`toggle_choicemodule_dice = 1`)
-
-| 결과 | 조건 |
+| 결과 | 조건 (예: DC=12) |
 |------|------|
 | 🌟 Critical Success | 롤 = 20 |
-| ✅ Success | 롤 ≥ 난이도(DC) |
-| ❌ Failure | 롤 < 난이도 |
+| ✅ Success | DC+3 ≤ 롤 ≤ 19 (예: 15~19) |
+| ↗️ Narrow Success | DC ≤ 롤 ≤ DC+2 (예: 12~14) |
+| ↘️ Narrow Failure | DC-3 ≤ 롤 ≤ DC-1 (예: 9~11) |
+| ❌ Failure | 2 ≤ 롤 ≤ DC-4 (예: 2~8) |
 | 💀 Critical Failure | 롤 = 1 |
+
+Narrow 구간의 폭은 3으로 고정되며, DC가 극단값일 때는 범위가 자연스럽게 좁아질 수 있습니다.
 
 ---
 
