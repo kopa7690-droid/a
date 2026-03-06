@@ -32,6 +32,7 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 | 🌐 NPC 관점 | 유저 또는 NPC 관점의 선택지 생성 지원 |
 | 🔥 궁극기 시스템 | 스탯별 게이지 충전 후 발동 — 무조건 대성공(Critical Success) 강제 (BETA) |
 | 🤝 보조 판정 시스템 | 파티원 보조 주사위로 실패 결과를 상쇄 — outcome 단계 업그레이드 (Phase 4) |
+| 🛡️ 연속 실패 보정 | 3회 이상 연속 실패 시 다음 판정에 +1~+5 자동 보정 — Pity System (Phase 5) |
 
 ---
 
@@ -102,6 +103,8 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 | 🔽 Narrow Failure | 롤 ≥ DC-3 (9~11) |
 | ❌ Failure | 롤 ≥ 2 (2~8) |
 | 💀 Critical Failure | 롤 = 1 |
+
+> **Narrow 판정 OOC 안내**: Narrow Success 또는 Narrow Failure가 나오면 유저 메시지에 근소한 결과임을 알리는 OOC 안내가 자동 추가됩니다.
 
 ---
 
@@ -335,6 +338,52 @@ AI가 출력해야 하는 선택지 형식:
   <Suggestion id="5" stat="WIS">선택지 텍스트</Suggestion>
 </ChoiceModule>
 ```
+
+---
+
+## 🛡️ 연속 실패 보정 시스템 (Pity System) — Phase 5
+
+### 개요
+
+유저가 **연속으로 실패**할 때 확률을 보정하는 시스템입니다.  
+3회 이상 연속 실패(Failure / Critical Failure / Narrow Failure) 시 다음 판정에 자동으로 **+1~+5 보정**이 추가됩니다.
+
+### 발동 조건
+
+| 결과 | failStreak 변화 |
+|------|----------------|
+| Critical Success | 0으로 리셋 |
+| Success | 0으로 리셋 |
+| Narrow Success | 변화 없음 |
+| Narrow Failure | +1 증가 |
+| Failure | +1 증가 |
+| Critical Failure | +1 증가 |
+
+### 보정 규칙
+
+- **3회 이상 연속 실패** 시: 다음 판정에서 D20 결과에 **+1~+5(랜덤) 보정** 자동 적용
+- 보정값은 롤 결과에 더해지며 최대 20을 초과하지 않습니다
+- 보정이 적용된 경우 유저 메시지에 OOC 안내가 자동 추가됩니다:
+
+```
+* (OOC: 연속된 실패로, 이번 판정엔 +2 보정이 적용되었습니다.)
+```
+
+### 저장 변수
+
+| 변수 (chatVar) | 설명 |
+|----------------|------|
+| `ChoiceModule.failStreak` | 연속 실패 카운터 (0~N) |
+
+### 궁극기와의 관계
+
+- 궁극기가 발동된 경우 Pity 보정은 **완전히 건너뜁니다** (궁극기 우선)
+- 궁극기 발동 결과(Critical Success)는 failStreak를 0으로 리셋합니다
+
+### 후방 호환
+
+- 별도 토글 없이 항상 활성 (스트릭이 3 미만이면 보정 없이 기존 동작 유지)
+- `ChoiceModule.failStreak`가 초기화되지 않은 경우 0으로 처리
 
 ---
 

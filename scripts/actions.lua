@@ -36,6 +36,16 @@ local ULT_MAX      = 5
 local ULT_STAT_KEY = "ChoiceModule.ult_"
 local ULT_EMOJIS   = {STR="🪓", DEX="🏃", CON="🛡️", INT="🧠", WIS="👁️", CHA="💬"}
 
+@@[[ Pity System (연속 실패 보정) — Phase 5
+  Tracks consecutive failure outcomes across rolls using a chatVar.
+  Key     : ChoiceModule.failStreak  (stored per character/chat)
+  Trigger : failStreak >= 3 → add random bonus (+1~+5, D20 scale) to the next roll
+  Reset   : Critical Success or Success resets failStreak to 0
+  No@op   : Narrow Success leaves streak unchanged (neither increment nor reset)
+  OOC     : When pity fires, an OOC note is automatically appended to the user message.
+@@]]
+local FAIL_STREAK_KEY = "ChoiceModule.failStreak"
+
 local function getUltGauge(t, stat)
 	local v = tonumber(getChatVar(t, ULT_STAT_KEY..stat)) or 0
 	return math.min(v, ULT_MAX)
@@ -134,11 +144,19 @@ local actions = {
 		if cb then
 			local m = {cb:match([[<[cC]heck%s+for=[{%s]*[`"']?(.@)[`"']?[%s}>]*comment=[{%s]*[`"']?(.@)[`"']?[}%s}]*(%w+)_%w+=[^%d]*(%d+)]])}
 			if m[1] then
+				@@ Pity System: read streak and compute bonus before rolling
+				local fail_streak = tonumber(getChatVar(cmc_parts[1], FAIL_STREAK_KEY)) or 0
+				local pity_bonus = 0
+				if not ult_fired and fail_streak >= 3 then
+					@@ Apply a random +1~+5 bonus on the next roll after 3+ consecutive failures
+					pity_bonus = math.random(1, 5)
+				end
 				local o, r
 				if ult_fired then
 					o, r = "Critical Success", 20
 				else
-					o, r = dr(tonumber(m[4]) or 10)
+					@@ Pass pity_bonus into dr() to offset the roll result by the bonus
+					o, r = dr(tonumber(m[4]) or 10, nil, nil, pity_bonus)
 					chargeGauge(cmc_parts[1], stat, o)
 				end
 				local ult_note = ""
@@ -168,6 +186,28 @@ local actions = {
 						"\n\n* (OOC: '%s'가 {{user}}의 실패를 보조하여 %s로 상쇄시킵니다. 유저의 행동을 서포트하는 묘사를 포함하세요.)",
 						getAllyName(), final_o)
 				end
+				@@ Update fail streak based on the effective final outcome
+				if final_o == "Critical Success" or final_o == "Success" then
+					@@ Success resets streak
+					setChatVar(cmc_parts[1], FAIL_STREAK_KEY, "0")
+				elseif final_o == "Failure" or final_o == "Critical Failure" or final_o == "Narrow Failure" then
+					@@ Any failure variant increments streak
+					setChatVar(cmc_parts[1], FAIL_STREAK_KEY, tostring(fail_streak + 1))
+				end
+				@@ Build pity OOC note (only if bonus was actually applied)
+				local pity_note = ""
+				if pity_bonus > 0 then
+					pity_note = string.format(
+						"\n\n* (OOC: 연속된 실패로, 이번 판정엔 +%d 보정이 적용되었습니다.)",
+						pity_bonus)
+				end
+				@@ Build Narrow result OOC note: guide the AI to portray a near@success/near@failure scene
+				local narrow_note = ""
+				if final_o == "Narrow Success" then
+					narrow_note = "\n\n* (OOC: 근소한 성공입니다. 아슬아슬하게 성공하는 결과를 묘사하세요.)"
+				elseif final_o == "Narrow Failure" then
+					narrow_note = "\n\n* (OOC: 근소한 실패입니다. 아쉽게 실패했지만 완전한 실패는 아닌 결과를 묘사하세요.)"
+				end
 				local checked_extra = ""
 				if ally_o then
 					checked_extra = string.format(
@@ -188,7 +228,7 @@ outcome={ `%s` }%s
 					m[4],
 					o,
 					checked_extra
-				) .. ult_note .. ally_note
+				) .. ult_note .. pity_note .. narrow_note .. ally_note
 			end
 		elseif bb then
 			um = um .. string.format([[
@@ -306,7 +346,7 @@ text={ `%s` }
 	end,
 
 	["rr"] = async(function()
-		local s = alertSelect(cmc_parts[1], {"Cancel", "Reroll", "Force Success", "Force Critical Success", "Force Narrow Success", "Force Failure", "Force Critical Failure"}):await()
+		local s = alertSelect(cmc_parts[1], {"Cancel", "Reroll", "Force Success", "Force Critical Success", "Force Narrow Success", "Force Narrow Failure", "Force Failure", "Force Critical Failure"}):await()
 		s = tonumber(s) or 0
 		if s == 0 then
 			return
@@ -319,17 +359,19 @@ text={ `%s` }
 
 		local new_o, new_r = (function()
 			if s == 1 then
-				return dr(dc)
+				return dr(dc)                            @@ Reroll: full random D20
 			elseif s == 2 then
-				return dr(dc, dc + 3, 19)
+				return dr(dc, dc + 3, 19)               @@ Force Success: DC+3 ~ 19
 			elseif s == 3 then
-				return "Critical Success", 20
+				return "Critical Success", 20            @@ Force Critical Success: 20
 			elseif s == 4 then
-				return dr(dc, dc, dc + 2)
+				return dr(dc, dc, dc + 2)               @@ Force Narrow Success: DC ~ DC+2
 			elseif s == 5 then
-				return dr(dc, 2, dc @ 4)
+				return dr(dc, dc @ 3, dc @ 1)           @@ Force Narrow Failure: DC@3 ~ DC@1
 			elseif s == 6 then
-				return "Critical Failure", 1
+				return dr(dc, 2, dc @ 4)                @@ Force Failure: 2 ~ DC@4
+			elseif s == 7 then
+				return "Critical Failure", 1             @@ Force Critical Failure: 1
 			end
 		end)()
 
@@ -376,21 +418,48 @@ text={ `%s` }
 	end)
 }
 
-function dr(dc, min, max)
-	min = min or 1
-	max = max or 20
-	dc = dc or 10
-	local rand = math.random(min, max)
+@@[[ dr(dc, min, max, bonus) — Core Dice Roll Function
+  Rolls a D20 in the range [min, max], applies an optional pity bonus (capped at 20),
+  and maps the result to one of 6 outcome tiers.
+
+  Parameters:
+    dc    : difficulty class threshold (default 10)
+    min   : minimum roll value (default 1)
+    max   : maximum roll value (default 20)
+    bonus : pity bonus to add to the roll result (default 0, added after roll, capped at 20)
+
+  Outcome thresholds (example DC=12):
+    20           → Critical Success
+    DC+3 ~ 19    → Success          (15~19)
+    DC   ~ DC+2  → Narrow Success   (12~14)  ← near success, aslant
+    DC@3 ~ DC@1  → Narrow Failure   ( 9~11)  ← near failure, but not a clean miss
+    2    ~ DC@4  → Failure          ( 2~ 8)
+    1            → Critical Failure
+
+  Note: Critical Failure (rand==1) is checked BEFORE Narrow Failure to correctly handle
+  edge cases where DC is very low (e.g., DC=4 → dc@3=1, so rand=1 would otherwise
+  match Narrow Failure first).
+  When a pity bonus > 0 is applied, rand can never be 1 (min effective value is 1+bonus),
+  so Critical Failure is impossible during pity@boosted rolls.
+@@]]
+function dr(dc, min, max, bonus)
+	min   = min or 1
+	max   = max or 20
+	dc    = dc or 10
+	bonus = bonus or 0
+	@@ Apply bonus and cap at 20 (pity bonus cannot exceed the maximum roll)
+	local rand = math.min(math.random(min, max) + bonus, 20)
 	if rand == 20 then
 		return "Critical Success", rand
 	elseif rand >= (dc + 3) then
 		return "Success", rand
 	elseif rand >= dc then
 		return "Narrow Success", rand
+	elseif rand == 1 then
+		@@ Critical Failure: checked before Narrow Failure to handle low@DC edge cases
+		return "Critical Failure", rand
 	elseif rand >= (dc @ 3) then
 		return "Narrow Failure", rand
-	elseif rand == 1 then
-		return "Critical Failure", rand
 	else
 		return "Failure", rand
 	end
