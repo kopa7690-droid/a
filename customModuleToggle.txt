@@ -5,8 +5,6 @@ ChoiceModule.mode=⚖️ 모듈 활성화
 ChoiceModule.korean=⚖️ 한국어 출력
 ChoiceModule.noLorebook=⚖️ 로어북 참조=select=포함,제외
 =⚖️ 선택지 스타일=divider
-choicemodule_type=⚖️ 선택지 타입=select=Mix,NoDice,AllDice,ㅇㅂㅁ,비활성
-=Mix: 주사위+일반 혼합 / NoDice: 주사위 없음 / AllDice: 전부 주사위=caption
 choicemodule_length=⚖️ 텍스트 길이=select=최대,대,중,소,최소
 =선택지 Scene 텍스트의 분량=caption
 choicemodule_perspective=⚖️ NPC 관점 선택지

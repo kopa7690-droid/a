@@ -12,7 +12,7 @@
 ## 콘텐츠 (Content)
 
 ```
-{{#if {{less::{{getglobalvar::toggle_choicemodule_type}}::4}}}}
+{{#if {{? !{{getglobalvar::toggle_ChoiceModule.mode}}}}}}
 identifier=ChoiceModule
 authorsNote=true
 charDesc=true{{#if_pure {{? {{getglobalvar::toggle_ChoiceModule.noLorebook}}!=1}}}}
@@ -34,4 +34,4 @@ LightBoard 통합 모드에서 사용하는 매니페스트 항목입니다.
 - `loreBooks=true`: 로어북 포함 (단, `toggle_ChoiceModule.noLorebook=1`이면 제외)
 - `personaDesc=true`: 페르소나 설명 포함
 - `rerollBehavior=remove-prev`: 리롤 시 이전 결과 제거
-- `toggle_choicemodule_type < 4`일 때만 활성화
+- `{{#if {{? !{{getglobalvar::toggle_ChoiceModule.mode}}}}}}`: `ChoiceModule.mode`가 비활성일 때만 활성화

@@ -56,7 +56,6 @@ RisuAI의 로어북(World Info)에 아래 항목들을 순서대로 추가합니
 아래 전역 변수를 원하는 값으로 설정합니다 (기본값 예시):
 
 ```
-toggle_choicemodule_type = 0
 toggle_choicemodule_length = 1
 toggle_choicemodule_perspective = false
 toggle_choicemodule_menu = true
@@ -221,14 +220,6 @@ OOC 메시지로 생성된 선택지를 **이전 AI 응답에 병합**합니다.
 ---
 
 ## 전역 변수 상세
-
-### `toggle_choicemodule_type`
-
-| 값 | 설명 |
-|----|------|
-| 0 | 기본 선택지 형식 |
-| 1~3 | 변형 선택지 형식 |
-| 4 | 선택지 비활성화 |
 
 ### `toggle_choicemodule_length`
 
@@ -473,7 +464,6 @@ Failure / Critical Failure / Narrow Failure가 3회 이상 연속 발생하면 *
 ### Q: 선택지가 표시되지 않아요.
 
 - `toggle_ChoiceModule.mode` 가 `true`로 설정되어 있지 않은지 확인하세요.
-- `toggle_choicemodule_type` 이 4 미만인지 확인하세요.
 - 로어북 항목의 활성화 여부를 확인하세요.
 
 ### Q: 주사위 버튼이 작동하지 않아요.

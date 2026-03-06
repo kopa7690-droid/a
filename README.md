@@ -72,7 +72,6 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 
 | 변수명 | 타입 | 설명 |
 |--------|------|------|
-| `toggle_choicemodule_type` | number (0–3) | 선택지 스타일 타입 (0=기본, 1~3=변형, 4=비활성) |
 | `toggle_choicemodule_length` | number (0–4) | 선택지 텍스트 길이 (0=상세, 1=일반, 2=짧게, 3=간결, 4=한 줄) |
 | `toggle_choicemodule_perspective` | boolean | NPC 관점 선택지 포함 여부 |
 | `toggle_choicemodule_menu` | boolean | 메뉴 버튼 표시 여부 |
