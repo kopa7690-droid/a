@@ -101,7 +101,7 @@ local TENSION_MOD = {
 	critical =  3,
 }
 
-@@[[ generateInstruction — builds the instructions= string for the final checked block
+@@[[ generateInstruction — builds the instructions OOC string for ally assist
   allyName    : ally character name
   userOutcome : the user's raw outcome (before ally assist)
   finalOutcome: the outcome after ally assist
@@ -115,8 +115,24 @@ local function generateInstruction(allyName, userOutcome, finalOutcome, bonus)
 	end
 	local word = EFFECT_WORDS[math.min(bonus, 3)] or "보정"
 	return string.format(
-		"%s가 {{user}}의 %s를 보조하여 %s를 %s로 %s시킵니다. 유저의 행동을 서포트하는 묘사를 포함하세요.",
-		allyName, userOutcome, userOutcome, finalOutcome, word)
+		"%s가 {{user}}의 %s를 보조하여 %s로 %s시킵니다. 유저의 행동을 서포트하는 묘사를 포함하세요.",
+		allyName, userOutcome, finalOutcome, word)
+end
+
+@@[[ generateOutcomeNote — builds the OOC guidance note for a given outcome level @@]]
+local OUTCOME_NOTES = {
+	["Critical Success"] = "대성공입니다. 완벽하게 성공하는 극적인 결과를 묘사하세요.",
+	["Success"]          = "성공입니다. 유저의 의도대로 잘 풀리는 결과를 묘사하세요.",
+	["Narrow Success"]   = "근소한 성공입니다. 아슬아슬하게 성공하는 결과를 묘사하세요.",
+	["Narrow Failure"]   = "근소한 실패입니다. 아쉽게 실패했지만 완전한 실패는 아닌 결과를 묘사하세요.",
+	["Failure"]          = "실패입니다. 유저의 의도가 이뤄지지 않는 결과를 묘사하세요.",
+	["Critical Failure"] = "대실패입니다. 완전히 실패하는 극적인 결과를 묘사하세요.",
+}
+
+local function generateOutcomeNote(outcome)
+	local msg = OUTCOME_NOTES[outcome]
+	if not msg then return "" end
+	return string.format("\n\n* (OOC: %s)", msg)
 end
 
 local actions = {
@@ -228,13 +244,8 @@ local actions = {
 						"\n\n* (OOC: 연속된 실패로, 이번 판정엔 +%d 보정이 적용되었습니다.)",
 						pity_bonus)
 				end
-				@@ Build Narrow result OOC note: guide the AI to portray a near@success/near@failure scene
-				local narrow_note = ""
-				if final_o == "Narrow Success" then
-					narrow_note = "\n\n* (OOC: 근소한 성공입니다. 아슬아슬하게 성공하는 결과를 묘사하세요.)"
-				elseif final_o == "Narrow Failure" then
-					narrow_note = "\n\n* (OOC: 근소한 실패입니다. 아쉽게 실패했지만 완전한 실패는 아닌 결과를 묘사하세요.)"
-				end
+				@@ Build outcome OOC note based on final_o
+				local narrow_note = generateOutcomeNote(final_o)
 				@@ 1-block unified output
 				um = um .. string.format([[
 
@@ -245,19 +256,16 @@ comment={ `%s` }
 {{user}} outcome={ `%s` }]],
 					m[1], m[2], r, dc, o)
 				if ally_o then
-					local bonus = ASSIST_BONUS[ally_o] or 0
 					um = um .. string.format([[
 
 %s rolled=%d
 %s threshold=%d
 %s outcome={ `%s` }
-final outcome={ `%s` }
-instructions= %s]],
+final outcome={ `%s` }]],
 						ally_name, ally_r,
 						ally_name, dc,
 						ally_name, ally_o,
-						final_o,
-						generateInstruction(ally_name, o, final_o, bonus))
+						final_o)
 				end
 				if ult_fired and stat then
 					um = um .. string.format([[
@@ -266,6 +274,10 @@ ult_fired=true
 ult_stat=%s]], stat)
 				end
 				um = um .. "\n?>"
+				if ally_o then
+					local bonus = ASSIST_BONUS[ally_o] or 0
+					um = um .. string.format("\n\n* (OOC: %s)", generateInstruction(ally_name, o, final_o, bonus))
+				end
 				um = um .. ult_note .. pity_note .. narrow_note
 			end
 		elseif bb then
@@ -458,23 +470,30 @@ text={ `%s` }
 
 		@@ Inject ally section into block if ally assists
 		if ally_o then
-			local bonus = ASSIST_BONUS[ally_o] or 0
 			local ally_section = string.format([[
 
 %s rolled=%d
 %s threshold=%d
 %s outcome={ `%s` }
-final outcome={ `%s` }
-instructions= %s]], ally_name, ally_r,
+final outcome={ `%s` }]], ally_name, ally_r,
 				ally_name, dc,
 				ally_name, ally_o,
-				final_o,
-				generateInstruction(ally_name, new_o, final_o, bonus))
+				final_o)
 			cd = cd:gsub("(<%?checked[^?]@{{user}} outcome={[^}]+})\n%?>",
 				function(header)
 					return header .. ally_section:gsub("%%","%%%%") .. "\n?>"
 				end, 1)
 		end
+
+		@@ Strip old OOC notes (instructions / outcome) left from previous op or rr
+		cd = cd:gsub("\n\n%* %(OOC:[^\n]*%)", "")
+		@@ Re@add instructions OOC (ally assist, final outcome basis)
+		if ally_o then
+			local bonus = ASSIST_BONUS[ally_o] or 0
+			cd = cd .. string.format("\n\n* (OOC: %s)", generateInstruction(ally_name, new_o, final_o, bonus))
+		end
+		@@ Re@add outcome OOC based on final_o
+		cd = cd .. generateOutcomeNote(final_o)
 
 		setChat(cmc_parts[1], ci, cd)
 	end),
