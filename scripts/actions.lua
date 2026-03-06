@@ -63,6 +63,28 @@ local function tryUltimate(t, stat)
 	return getUltGauge(t, stat) >= ULT_MAX
 end
 
+@@[[ Ally (보조) System — Phase 4
+  Toggle : toggle_choicemodule_ally global var (truthy = enabled)
+  Name   : toggle_choicemodule_ally_name global var (character name shown in OOC)
+  Logic  : When user outcome is in failure range (level <= 2), roll ally dice with the
+           same DC. Ally result upgrades the user outcome:
+             Narrow Success (+1), Success (+2), Critical Success (+3 stages, capped at 5).
+           Ally Failure / Narrow Failure / Critical Failure → no change, no output.
+  Note   : Ultimate gauge charging is NOT affected by ally assist.
+           If ultimate fires, ally assist is skipped entirely.
+@@]]
+local function isAllyEnabled()
+	local ok, v = pcall(function() return getGlobalVar("toggle_choicemodule_ally") end)
+	if not ok or not v then return false end
+	return v == "true" or v == "1" or v == true or v == 1
+end
+
+local function getAllyName()
+	local ok, v = pcall(function() return getGlobalVar("toggle_choicemodule_ally_name") end)
+	if not ok or not v or v == "" then return "파티원" end
+	return v
+end
+
 local actions = {
 	["op"] = async(function()
 		local ci = tonumber(cmc_parts[3])
@@ -126,20 +148,47 @@ local actions = {
 						"\n\n* OOC: {{user}}의 %s %s 궁극기가 발동됩니다! 무조건 대성공입니다. %s 능력이 극한까지 발휘되는 극적인 장면을 연출하세요.",
 						emo, stat, stat)
 				end
+				@@ Ally assist (보조 판정): only when ultimate did not fire
+				local ally_o, ally_r, final_o = nil, nil, o
+				if not ult_fired and isAllyEnabled() then
+					local user_level = LEVELS[o] or 0
+					if user_level <= 2 then
+						ally_o, ally_r = dr(tonumber(m[4]) or 10)
+						local ally_level = LEVELS[ally_o] or 0
+						if ally_level >= 3 then
+							final_o = LEVEL_NAME[math.min(user_level + (ally_level @ 2), 5)] or o
+						else
+							ally_o, ally_r = nil, nil
+						end
+					end
+				end
+				local ally_note = ""
+				if ally_o and final_o ~= o then
+					ally_note = string.format(
+						"\n\n* (OOC: '%s'가 {{user}}의 실패를 보조하여 %s로 상쇄시킵니다. 유저의 행동을 서포트하는 묘사를 포함하세요.)",
+						getAllyName(), final_o)
+				end
+				local checked_extra = ""
+				if ally_o then
+					checked_extra = string.format(
+						"\nally_rolled=%d\nally_outcome={ `%s` }\nfinal_outcome={ `%s` }",
+						ally_r, ally_o, final_o)
+				end
 				um = um .. string.format([[
 
 <?checked for={ `%s` }
 comment={ `%s` }
 rolled=%d
 threshold=%s
-outcome={ `%s` }
+outcome={ `%s` }%s
 ?>]],
 					m[1],
 					m[2],
 					r,
 					m[4],
-					o
-				) .. ult_note
+					o,
+					checked_extra
+				) .. ult_note .. ally_note
 			end
 		elseif bb then
 			um = um .. string.format([[
@@ -263,26 +312,56 @@ text={ `%s` }
 			return
 		end
 		local ci = tonumber(cmc_parts[3])
-		local m = {getChat(cmc_parts[1], cmc_parts[3]).data:match("(.+rolled=)(%d+)([^=]+=)(%d+)([^=]+={ `)(.@)(` }.+)")}
+		local cd = getChat(cmc_parts[1], cmc_parts[3]).data
 
-		m[4] = tonumber(m[4]) or 10
+		@@ Parse DC from the <?checked ...?> tag (avoid matching ally_rolled)
+		local dc = tonumber(cd:match("<%?checked[^?]-\nthreshold=[^%d]*(%d+)")) or 10
 
-		m[6], m[2] = (function()
+		local new_o, new_r = (function()
 			if s == 1 then
-				return dr(m[4])
+				return dr(dc)
 			elseif s == 2 then
-				return dr(m[4], m[4] + 3, 19)
+				return dr(dc, dc + 3, 19)
 			elseif s == 3 then
 				return "Critical Success", 20
 			elseif s == 4 then
-				return dr(m[4], m[4], m[4] + 2)
+				return dr(dc, dc, dc + 2)
 			elseif s == 5 then
-				return dr(m[4], 2, m[4] @ 4)
+				return dr(dc, 2, dc @ 4)
 			elseif s == 6 then
 				return "Critical Failure", 1
 			end
 		end)()
-		setChat(cmc_parts[1], ci, table.concat(m))
+
+		@@ Recompute ally assist for the new outcome
+		local ally_extra = ""
+		if isAllyEnabled() then
+			local user_level = LEVELS[new_o] or 0
+			if user_level <= 2 then
+				local ao, ar = dr(dc)
+				local al = LEVELS[ao] or 0
+				if al >= 3 then
+					local fo = LEVEL_NAME[math.min(user_level + (al @ 2), 5)] or new_o
+					ally_extra = string.format(
+						"\nally_rolled=%d\nally_outcome={ `%s` }\nfinal_outcome={ `%s` }",
+						ar, ao, fo)
+				end
+			end
+		end
+
+		@@ Update rolled/outcome fields in the <?checked ...?> tag in-place
+		cd = cd:gsub("(<%?checked[^?]-)(\nrolled=)%d+", "%1%2" .. new_r)
+		cd = cd:gsub("(<%?checked[^?]-\noutcome={ `)([^`]+)(` })", "%1" .. new_o:gsub("%%","%%%%") .. "%3")
+		@@ Strip old ally fields (if any)
+		cd = cd:gsub("(<%?checked[^?]-)\nally_rolled=[^\n]*", "%1")
+		cd = cd:gsub("(<%?checked[^?]-)\nally_outcome=[^\n]*", "%1")
+		cd = cd:gsub("(<%?checked[^?]-)\nfinal_outcome=[^\n]*", "%1")
+		@@ Inject new ally fields before closing ?>
+		if ally_extra ~= "" then
+			cd = cd:gsub("(<%?checked[^?]-)(\n%?>)", "%1" .. ally_extra:gsub("%%","%%%%") .. "%2")
+		end
+
+		setChat(cmc_parts[1], ci, cd)
 	end),
 	["rm"] = async(function()
 		local s = alertSelect(cmc_parts[1], {"취소", "선택지 삭제"}):await()

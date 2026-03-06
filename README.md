@@ -31,6 +31,7 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 | 🗑️ 선택지 제거 | 불필요한 선택지를 숨기거나 제거 |
 | 🌐 NPC 관점 | 유저 또는 NPC 관점의 선택지 생성 지원 |
 | 🔥 궁극기 시스템 | 스탯별 게이지 충전 후 발동 — 무조건 대성공(Critical Success) 강제 (BETA) |
+| 🤝 보조 판정 시스템 | 파티원 보조 주사위로 실패 결과를 상쇄 — outcome 단계 업그레이드 (Phase 4) |
 
 ---
 
@@ -81,6 +82,8 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 | `toggle_ChoiceModule.noLorebook` | number | 1이면 LightBoard 로어북 참조 비활성 |
 | `toggle_lightboard.thoughts` | number | LightBoard 사고 단계 상세도 (3 미만이면 8단어 제한) |
 | `toggle_choicemodule_ultimate` | boolean | 궁극기(Ultimate) 시스템 활성화 여부 (BETA, 기본값 false) |
+| `toggle_choicemodule_ally` | boolean | 보조(Ally) 판정 시스템 활성화 여부 (기본값 false) |
+| `toggle_choicemodule_ally_name` | string | 보조 판정 캐릭터 이름 (기본값 "파티원") |
 
 ---
 
@@ -171,6 +174,78 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 
 - `toggle_choicemodule_ultimate`가 false/0이거나 설정되지 않은 경우 완전히 비활성 → 기존 동작 유지
 - `stat` 속성 없는 구형 선택지: 게이지 충전/발동 없음
+
+---
+
+## 🤝 보조 판정 시스템 (Ally Assist System) — Phase 4
+
+> 활성화: `toggle_choicemodule_ally = true`
+
+### 개요
+
+파티원이 유저의 **실패/패널티 결과를 보조**하여 outcome을 한 단계 이상 올려주는 협동 판정 시스템입니다.  
+유저의 주사위 결과가 실패 계열(Critical Failure / Failure / Narrow Failure)일 때 파티원이 **보조 주사위**를 굴려 결과를 상쇄시킬 수 있습니다.
+
+### 보조 판정 규칙
+
+| 유저 결과 | 보조 발동 여부 |
+|-----------|---------------|
+| Critical Failure | ✅ 보조 가능 |
+| Failure | ✅ 보조 가능 |
+| Narrow Failure | ✅ 보조 가능 |
+| Narrow Success 이상 | ❌ 보조 불필요 (발동 안 함) |
+
+| 보조 결과 | 업그레이드 |
+|-----------|-----------|
+| 🔼 Narrow Success | +1 단계 |
+| ✅ Success | +2 단계 |
+| 🌟 Critical Success | +3 단계 (최대 Critical Success) |
+| Failure 계열 | 변화 없음, 출력 없음 |
+
+### 예시 업그레이드
+
+```
+유저: Critical Failure(0) + 보조 Narrow Success(+1) → Failure(1)
+유저: Failure(1)          + 보조 Success(+2)        → Narrow Success(3)
+유저: Narrow Failure(2)   + 보조 Critical Success(+3)→ Critical Success(5)
+```
+
+### OOC 자동 삽입
+
+보조 판정으로 outcome이 변화된 경우 유저 메시지에 다음 OOC가 자동 추가됩니다:
+
+```
+* (OOC: '엘리아'가 {{user}}의 실패를 보조하여 Narrow Failure로 상쇄시킵니다. 유저의 행동을 서포트하는 묘사를 포함하세요.)
+```
+
+보조가 실패(Failure 계열)하면 아무런 출력도 추가되지 않습니다.
+
+### 궁극기와의 관계
+
+- 궁극기가 발동된 경우 보조 판정은 **완전히 건너뜁니다** (궁극기 우선).
+- 보조 성공으로 outcome이 변경되더라도 **궁극기 게이지는 충전되지 않습니다**.
+
+### UI 표시
+
+주사위 결과 테이블 아래에 보조 정보가 표시됩니다 (결과 미숨김 시):
+
+```
+🤝 보조: [ 15 ] → Narrow Success ｜ 최종: [ Narrow Failure ]
+```
+
+`Outcome` 셀에는 항상 **최종 outcome**(보조 적용 후)이 표시됩니다.
+
+### 설정 변수
+
+| 변수명 | 타입 | 기본값 | 설명 |
+|--------|------|--------|------|
+| `toggle_choicemodule_ally` | boolean | false | 보조 판정 시스템 활성화 여부 |
+| `toggle_choicemodule_ally_name` | string | "파티원" | OOC에 표시될 보조 캐릭터 이름 |
+
+### 후방 호환
+
+- `toggle_choicemodule_ally`가 false/0이거나 설정되지 않은 경우 완전히 비활성 → 기존 동작 유지
+- 궁극기 시스템과 독립적으로 동작합니다 (둘 다 활성화 가능)
 
 ---
 

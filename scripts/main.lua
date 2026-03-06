@@ -164,50 +164,80 @@ listenEdit("editDisplay", function(t, d)
 		end)
 	else
 		-- Convert <?checked ...?> dice result → interactive dice table UI
-		d, r = d:gsub("<%?checked.-rolled=(.-)%s*threshold=[^%d]*(%d+)[^%s]*%s*outcome={ `?([%w%s]+)[^%?]+%?>",
-[[{{#if_pure {{? {{getglobalvar::toggle_choicemodule_hidden}}&{{getvar::ChoiceModule.lastId}}>0}}}}{{settempvar::cmh::{{? {{chat_index}}>{{getvar::ChoiceModule.lastId}}}}}}{{/}}{{settempvar::cmt::{{? {{chat_index}}<({{lastmessageid}}-6)}}}}{{#if {{gettempvar::cmt}}}}
-<details>
-  <summary>🎲 주사위</summary>
-{{/}}<table class="dicemodule-table">
-<tr><td><strong>Rolled:</td>
-<td><b>{{#if_pure {{? {{gettempvar::cmh}}=0}}}}
-[ %1 ]</td>
-<td rowspan="3" style="vertical-align: bottom"><center>
-<button risu-btn="choicemodule_rr_{{chat_index}}">
-<div class="dicemodule-cube dicemodule-throw">
-<div class="dicemodule-side dicemodule-side1">%1</div>
-<div class="dicemodule-side dicemodule-side2"></div>
-<div class="dicemodule-side dicemodule-side3"></div>
-<div class="dicemodule-side dicemodule-side4"></div>
-<div class="dicemodule-side dicemodule-side5"></div>
-<div class="dicemodule-side dicemodule-side6"></div>
-<div class="dicemodule-side dicemodule-cover dicemodule-cover-x"></div>
-<div class="dicemodule-side dicemodule-cover dicemodule-cover-y"></div>
-<div class="dicemodule-side dicemodule-cover dicemodule-cover-z"></div>
-</div></button></td></tr>
-<tr><td><strong>Difficulty:</td>
-<td><b>[ %2 ]</td></tr>
-<tr><td><strong>Outcome:</td>
-<td><b>%3{{/}}{{#if_pure {{gettempvar::cmh}}}}
-[ ? ]</td>
-<td rowspan="3" style="vertical-align: bottom"><center>
-<div class="dicemodule-cube dicemodule-throw">
-<div class="dicemodule-side dicemodule-side1">?</div>
-<div class="dicemodule-side dicemodule-side2"></div>
-<div class="dicemodule-side dicemodule-side3"></div>
-<div class="dicemodule-side dicemodule-side4"></div>
-<div class="dicemodule-side dicemodule-side5"></div>
-<div class="dicemodule-side dicemodule-side6"></div>
-<div class="dicemodule-side dicemodule-cover dicemodule-cover-x"></div>
-<div class="dicemodule-side dicemodule-cover dicemodule-cover-y"></div>
-<div class="dicemodule-side dicemodule-cover dicemodule-cover-z"></div>
-</div></td></tr>
-<tr><td><strong>Difficulty:</td>
-<td><b>[ %2 ]</td></tr>
-<tr><td><strong>Outcome:</td>
-<td><b>[ ? ]{{/}}
-</td></tr><tr></table><div></div>
-{{#if_pure {{gettempvar::cmt}}}}</details>{{/}}]])
+		-- Supports optional ally (보조) fields: ally_rolled, ally_outcome, final_outcome (Phase 4)
+		d, r = d:gsub("<%?checked(.-)%?>", function(block)
+			local rolled  = block:match("rolled=(%d+)")
+			local thresh  = block:match("threshold=[^%d]*(%d+)")
+			local outcome = block:match("outcome={%s*`?([%w%s]+)[`%s}]")
+			if not rolled or not thresh or not outcome then return end
+			outcome = outcome:match("^%s*(.-)%s*$") or outcome
+
+			local ally_rolled = block:match("ally_rolled=(%d+)")
+			local ao = (block:match("ally_outcome={%s*`?([%w%s]+)[`%s}]") or ""):match("^%s*(.-)%s*$")
+			local fo = (block:match("final_outcome={%s*`?([%w%s]+)[`%s}]") or ""):match("^%s*(.-)%s*$")
+			local has_ally = ally_rolled and ao ~= "" and fo ~= ""
+
+			-- In visible mode, show the final (ally-upgraded) outcome; hidden mode → [ ? ]
+			local ov = has_ally and fo or outcome
+			local function esc(s) return (s or ""):gsub("%%","%%%%") end
+
+			-- Ally summary block shown only when dice results are visible (non-hidden mode)
+			local ally_block = ""
+			if has_ally then
+				ally_block =
+					"{{#if_pure {{? {{gettempvar::cmh}}=0}}}}" ..
+					"<div class=\"dicemodule-ally\">" ..
+					"🤝 보조: [ " .. esc(ally_rolled) .. " ] → " .. esc(ao) ..
+					" ｜ 최종: [ " .. esc(fo) .. " ]" ..
+					"</div>{{/}}"
+			end
+
+			return
+				"{{#if_pure {{? {{getglobalvar::toggle_choicemodule_hidden}}&{{getvar::ChoiceModule.lastId}}>0}}}}" ..
+				"{{settempvar::cmh::{{? {{chat_index}}>{{getvar::ChoiceModule.lastId}}}}}}" ..
+				"{{/}}{{settempvar::cmt::{{? {{chat_index}}<({{lastmessageid}}-6)}}}}" ..
+				"{{#if {{gettempvar::cmt}}}}\n<details>\n  <summary>🎲 주사위</summary>\n{{/}}" ..
+				"<table class=\"dicemodule-table\">\n" ..
+				"<tr><td><strong>Rolled:</td>\n" ..
+				"<td><b>{{#if_pure {{? {{gettempvar::cmh}}=0}}}}\n" ..
+				"[ " .. esc(rolled) .. " ]</td>\n" ..
+				"<td rowspan=\"3\" style=\"vertical-align: bottom\"><center>\n" ..
+				"<button risu-btn=\"choicemodule_rr_{{chat_index}}\">\n" ..
+				"<div class=\"dicemodule-cube dicemodule-throw\">\n" ..
+				"<div class=\"dicemodule-side dicemodule-side1\">" .. esc(rolled) .. "</div>\n" ..
+				"<div class=\"dicemodule-side dicemodule-side2\"></div>\n" ..
+				"<div class=\"dicemodule-side dicemodule-side3\"></div>\n" ..
+				"<div class=\"dicemodule-side dicemodule-side4\"></div>\n" ..
+				"<div class=\"dicemodule-side dicemodule-side5\"></div>\n" ..
+				"<div class=\"dicemodule-side dicemodule-side6\"></div>\n" ..
+				"<div class=\"dicemodule-side dicemodule-cover dicemodule-cover-x\"></div>\n" ..
+				"<div class=\"dicemodule-side dicemodule-cover dicemodule-cover-y\"></div>\n" ..
+				"<div class=\"dicemodule-side dicemodule-cover dicemodule-cover-z\"></div>\n" ..
+				"</div></button></td></tr>\n" ..
+				"<tr><td><strong>Difficulty:</td>\n" ..
+				"<td><b>[ " .. esc(thresh) .. " ]</td></tr>\n" ..
+				"<tr><td><strong>Outcome:</td>\n" ..
+				"<td><b>" .. esc(ov) .. "{{/}}{{#if_pure {{gettempvar::cmh}}}}\n" ..
+				"[ ? ]</td>\n" ..
+				"<td rowspan=\"3\" style=\"vertical-align: bottom\"><center>\n" ..
+				"<div class=\"dicemodule-cube dicemodule-throw\">\n" ..
+				"<div class=\"dicemodule-side dicemodule-side1\">?</div>\n" ..
+				"<div class=\"dicemodule-side dicemodule-side2\"></div>\n" ..
+				"<div class=\"dicemodule-side dicemodule-side3\"></div>\n" ..
+				"<div class=\"dicemodule-side dicemodule-side4\"></div>\n" ..
+				"<div class=\"dicemodule-side dicemodule-side5\"></div>\n" ..
+				"<div class=\"dicemodule-side dicemodule-side6\"></div>\n" ..
+				"<div class=\"dicemodule-side dicemodule-cover dicemodule-cover-x\"></div>\n" ..
+				"<div class=\"dicemodule-side dicemodule-cover dicemodule-cover-y\"></div>\n" ..
+				"<div class=\"dicemodule-side dicemodule-cover dicemodule-cover-z\"></div>\n" ..
+				"</div></td></tr>\n" ..
+				"<tr><td><strong>Difficulty:</td>\n" ..
+				"<td><b>[ " .. esc(thresh) .. " ]</td></tr>\n" ..
+				"<tr><td><strong>Outcome:</td>\n" ..
+				"<td><b>[ ? ]{{/}}\n" ..
+				"</td></tr><tr></table>" .. ally_block .. "<div></div>\n" ..
+				"{{#if_pure {{gettempvar::cmt}}}}</details>{{/}}"
+		end)
 	end
 	return c..d
 end)
