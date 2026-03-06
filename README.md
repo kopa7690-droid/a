@@ -42,12 +42,7 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 📦 choice-module-capsule-extension
 ├── 📄 README.md                              # 이 문서
 ├── 📂 lorebook/                              # 로어북 항목들
-│   ├── 01_main_prompt.md                     # 메인 시스템 프롬프트 (Choice Module 지시문)
-│   ├── 02_request_omit_choice.md             # 선택지 제거 규칙
-│   ├── 03_request_fix_dice.md                # 주사위 수정 규칙
-│   ├── 04_display_menu.md                    # 메뉴 표시 규칙
-│   ├── 05_output_remove_dice.md              # 주사위 출력 제거 규칙
-│   ├── 06_display_lazy.md                    # 지연 로딩 표시 규칙
+│   ├── 01_main_prompt.md                     # 메인 프롬프트
 │   ├── 07_manifest_lb.md                     # LightBoard 매니페스트
 │   ├── 08_choicemodule_lb.md                 # LightBoard 태스크 할당
 │   ├── 09_choicemodule_lb_job.md             # LightBoard 작업 설명
@@ -55,10 +50,16 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 │   ├── 11_choicemodule_lb_thoughts.md        # LightBoard 단계별 사고
 │   ├── 12_choicemodule_lb_onoutput.md        # LightBoard 출력 후처리 (Lua)
 │   ├── 13_choicemodule_lb_interaction.md     # LightBoard 인터랙션 태스크
-│   └── 14_choicemodule_lb_thoughts_interaction.md  # LightBoard 인터랙션 단계별 사고
+│   ├── 14_choicemodule_lb_thoughts_interaction.md  # LightBoard 인터랙션 단계별 사고
+│   └── 15_choicemodule_actions.md            # 액션 스크립트 (로어북 Lua) 문서
 ├── 📂 scripts/
 │   ├── main.lua                              # 메인 Lua 트리거 스크립트
-│   └── actions.lua                           # 선택지 액션 Lua 스크립트 (ChoiceModule.actions)
+│   ├── actions.lua                           # 선택지 액션 Lua 스크립트 (로어북 항목)
+│   ├── 02_request_omit_choice.md             # editprocess: 선택지 제거 규칙
+│   ├── 03_request_fix_dice.md                # editprocess: 주사위 수정 규칙
+│   ├── 04_display_menu.md                    # editdisplay: 메뉴 표시 규칙
+│   ├── 05_output_remove_dice.md              # editoutput: 주사위 출력 제거 규칙
+│   └── 06_display_lazy.md                    # editdisplay: 지연 로딩 표시 규칙
 └── 📂 docs/
     └── usage.md                              # 상세 사용법 가이드
 ```
