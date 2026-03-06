@@ -22,7 +22,8 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 
 | 기능 | 설명 |
 |------|------|
-| 🎯 자동 선택지 생성 | AI 응답마다 1~5개의 다음 행동 선택지를 자동으로 제시 |
+| 🎯 자동 선택지 생성 | AI 응답마다 항상 5개의 다음 행동 선택지를 자동으로 제시 |
+| ⚔️ D&D 스탯 속성 | 각 선택지에 STR/DEX/CON/INT/WIS/CHA 중 하나의 스탯을 부여하며, 5개 선택지에 모두 다른 스탯 사용 |
 | 🎲 주사위 판정 | D20 방식 지원, 6단계 판정(Critical Success/Success/Narrow Success/Narrow Failure/Failure/Critical Failure) |
 | 🔄 리롤 | 주사위 결과 재굴림 및 강제 성공/실패 옵션 |
 | 📋 선택지 병합 | 이전 응답에 선택지 결과를 병합하는 기능 |
@@ -96,6 +97,25 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 | 🔽 Narrow Failure | 롤 ≥ DC-3 (9~11) |
 | ❌ Failure | 롤 ≥ 2 (2~8) |
 | 💀 Critical Failure | 롤 = 1 |
+
+---
+
+## ⚔️ D&D 스탯 시스템 (Stat System)
+
+각 선택지에는 D&D 스타일 6개 스탯 중 하나가 반드시 할당됩니다.  
+**5개 선택지는 모두 서로 다른 스탯을 사용해야 합니다** (6개 중 5개).
+
+| 스탯 | 약어 | 설명 |
+|------|------|------|
+| Strength | STR | 근력 — 물리적 힘, 격투, 무기 공격 |
+| Dexterity | DEX | 민첩 — 회피, 속도, 은신, 원거리 공격 |
+| Constitution | CON | 건강 — 지구력, 체력, 독 저항 |
+| Intelligence | INT | 지능 — 지식, 마법, 추론, 수사 |
+| Wisdom | WIS | 지혜 — 직관, 인식, 의지력 |
+| Charisma | CHA | 매력 — 설득, 속임수, 사회적 상호작용 |
+
+각 `<Suggestion>`에는 `stat={ STR|DEX|CON|INT|WIS|CHA }` 속성이 필수입니다.  
+5개 선택지에 사용할 스탯은 맥락에 맞게 선택하며, 사용하지 않는 1개 스탯은 상황에 따라 달라질 수 있습니다.
 
 ---
 
@@ -175,12 +195,14 @@ AI가 출력해야 하는 선택지 형식:
 
 ```xml
 <ChoiceModule>
-  <Suggestion id="1">
+  <Suggestion id="1" stat="STR">
     <Check for="행동 설명" comment="설명" difficulty_class=12 />
     선택지 텍스트
   </Suggestion>
-  <Suggestion id="2">선택지 텍스트</Suggestion>
-  ...
+  <Suggestion id="2" stat="DEX">선택지 텍스트</Suggestion>
+  <Suggestion id="3" stat="CON">선택지 텍스트</Suggestion>
+  <Suggestion id="4" stat="INT">선택지 텍스트</Suggestion>
+  <Suggestion id="5" stat="WIS">선택지 텍스트</Suggestion>
 </ChoiceModule>
 ```
 
