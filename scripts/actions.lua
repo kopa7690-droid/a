@@ -24,6 +24,45 @@ local LEVELS = {
 local LEVEL_NAME = {}
 for k, v in pairs(LEVELS) do LEVEL_NAME[v] = k end
 
+@@[[ Ultimate (궁극기) System — Phase 3
+  Each stat has an independent gauge stored as a chatVar.
+  Key format : ChoiceModule.ult_STR, ChoiceModule.ult_DEX, …
+  Max gauge  : ULT_MAX (default 5)
+  Charging   : +1 per stat use; +2 on Critical Failure (pity bonus)
+  Trigger    : gauge >= ULT_MAX → outcome forced to Critical Success, gauge reset
+  Toggle     : toggle_choicemodule_ultimate global var (truthy = enabled)
+@@]]
+local ULT_MAX      = 5
+local ULT_STAT_KEY = "ChoiceModule.ult_"
+local ULT_EMOJIS   = {STR="🪓", DEX="🏃", CON="🛡️", INT="🧠", WIS="👁️", CHA="💬"}
+
+local function getUltGauge(t, stat)
+	local v = tonumber(getChatVar(t, ULT_STAT_KEY..stat)) or 0
+	return math.min(v, ULT_MAX)
+end
+
+local function setUltGauge(t, stat, v)
+	setChatVar(t, ULT_STAT_KEY..stat, tostring(math.max(0, math.min(v, ULT_MAX))))
+end
+
+local function chargeGauge(t, stat, outcome)
+	if not stat or stat == "" then return end
+	local amount = (outcome == "Critical Failure") and 2 or 1
+	setUltGauge(t, stat, getUltGauge(t, stat) + amount)
+end
+
+local function isUltEnabled()
+	local ok, v = pcall(function() return getGlobalVar("toggle_choicemodule_ultimate") end)
+	if not ok or not v then return false end
+	return v == "true" or v == "1" or v == true or v == 1
+end
+
+local function tryUltimate(t, stat)
+	if not stat or stat == "" then return false end
+	if not isUltEnabled() then return false end
+	return getUltGauge(t, stat) >= ULT_MAX
+end
+
 local actions = {
 	["op"] = async(function()
 		local ci = tonumber(cmc_parts[3])
@@ -35,7 +74,17 @@ local actions = {
 				return getChat(cmc_parts[1], ci).data
 			end
 		end)()
-		
+
+		@@ Extract stat from the Suggestion opening tag for ultimate system
+		local stat = nil
+		do
+			local tag = cd:match(string.format("<[sS]uggestion[^>]@id=[^%%d]*%s[^>]@>", oi))
+			if tag then
+				local s = tag:match("stat=[{%s]*[`\"']?([%w]+)")
+				if s then stat = s:upper() end
+			end
+		end
+
 		local cb, bb = nil
 		local sb = cd:match(table.concat({".*<[sS]uggestion%s+id=[^%d]*", oi, "[^>]@>(.@)</[sS]uggestion>"}))
 		sb = sb:gsub("<[sS]cene>", "")
@@ -53,11 +102,30 @@ local actions = {
 		if not um then
 			return
 		end
-		
+
+		@@ Check and fire ultimate
+		local ult_fired = tryUltimate(cmc_parts[1], stat)
+		if ult_fired then
+			setUltGauge(cmc_parts[1], stat, 0)
+		end
+
 		if cb then
 			local m = {cb:match([[<[cC]heck%s+for=[{%s]*[`"']?(.@)[`"']?[%s}>]*comment=[{%s]*[`"']?(.@)[`"']?[}%s}]*(%w+)_%w+=[^%d]*(%d+)]])}
 			if m[1] then
-				local o, r = dr(tonumber(m[4]) or 10)
+				local o, r
+				if ult_fired then
+					o, r = "Critical Success", 20
+				else
+					o, r = dr(tonumber(m[4]) or 10)
+					chargeGauge(cmc_parts[1], stat, o)
+				end
+				local ult_note = ""
+				if ult_fired then
+					local emo = (stat and ULT_EMOJIS[stat]) or ""
+					ult_note = string.format(
+						"\n\n* OOC: {{user}}의 %s %s 궁극기가 발동됩니다! 무조건 대성공입니다. %s 능력이 극한까지 발휘되는 극적인 장면을 연출하세요.",
+						emo, stat, stat)
+				end
 				um = um .. string.format([[
 
 <?checked for={ `%s` }
@@ -71,7 +139,7 @@ outcome={ `%s` }
 					r,
 					m[4],
 					o
-				)
+				) .. ult_note
 			end
 		elseif bb then
 			um = um .. string.format([[
@@ -79,6 +147,22 @@ outcome={ `%s` }
 <?bubble
 text={ `%s` }
 ?>]], bb)
+			if ult_fired then
+				local emo = (stat and ULT_EMOJIS[stat]) or ""
+				um = um .. string.format(
+					"\n\n* OOC: {{user}}의 %s %s 궁극기가 발동됩니다! 무조건 대성공입니다. %s 능력이 극한까지 발휘되는 극적인 장면을 연출하세요.",
+					emo, stat, stat)
+			end
+		else
+			@@ No Check, no Bubble: plain scene selection
+			if ult_fired then
+				local emo = (stat and ULT_EMOJIS[stat]) or ""
+				um = um .. string.format(
+					"\n\n* OOC: {{user}}의 %s %s 궁극기가 발동됩니다! 무조건 대성공입니다. %s 능력이 극한까지 발휘되는 극적인 장면을 연출하세요.",
+					emo, stat, stat)
+			elseif isUltEnabled() then
+				chargeGauge(cmc_parts[1], stat, nil)
+			end
 		end
 		local lc = getChat(cmc_parts[1], @1)
 		if not lc or lc.role == "char" then

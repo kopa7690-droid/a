@@ -132,3 +132,4 @@ LightBoard 모드에서 AI에게 제공하는 출력 형식 템플릿입니다.
 - `Nearby NPC` (대문자 N): 캡슐 확장 프롬프트와 달리 `Nearby`가 대문자임에 유의
 - `toggle_choicemodule_type`에 따라 다양한 선택지 포맷 적용
 - 항상 정확히 5개의 선택지를 생성하며, 각 선택지에 `stat={ STR|DEX|CON|INT|WIS|CHA }` 속성이 필수 (5개 모두 서로 다른 스탯)
+- **궁극기 연동**: `stat` 속성은 `scripts/actions.lua`의 게이지 충전·발동 로직에서 사용됩니다. `toggle_choicemodule_ultimate = true`일 때 FULL 게이지 스탯 선택지는 자동으로 Critical Success를 발동합니다.

@@ -67,6 +67,7 @@ toggle_ChoiceModule.mode = false
 toggle_ChoiceModule.korean = false
 toggle_ChoiceModule.noLorebook = 0
 toggle_lightboard.thoughts = 3
+toggle_choicemodule_ultimate = false   # BETA: set true to enable the Ultimate gauge system
 ```
 
 ---
@@ -264,6 +265,70 @@ OOC 메시지로 생성된 선택지를 **이전 AI 응답에 병합**합니다.
 
 - `3 이상` (기본): 단계별 사고 제한 없음
 - `3 미만`: 각 사고 단계를 8단어 이하로 제한 (간결한 추론)
+
+### `toggle_choicemodule_ultimate` *(BETA)*
+
+궁극기(Ultimate) 시스템 활성화 여부입니다.
+
+- `false` (기본): 비활성 — 기존 동작 유지, 게이지 충전/발동 없음
+- `true`: 활성 — 스탯별 게이지 시스템 동작
+
+---
+
+## 🔥 궁극기 시스템 (Ultimate System) — BETA
+
+> 활성화: `toggle_choicemodule_ultimate = true`
+
+### 개요
+
+D&D 6대 스탯(STR/DEX/CON/INT/WIS/CHA)별로 독립적인 **게이지(0–5)**를 충전하여,  
+FULL(5/5) 상태에서 해당 스탯 선택지를 선택하면 **무조건 대성공(Critical Success)**을 발동합니다.
+
+### 게이지 충전 규칙
+
+| 상황 | 충전 |
+|------|------|
+| 해당 스탯 선택지 선택 (어떤 결과든) | +1 |
+| 선택 결과 Critical Failure | +2 (크리 실패 패널티 보상) |
+| stat 없는 구형 선택지 | 충전 없음 |
+
+### 궁극기 발동 조건
+
+1. `toggle_choicemodule_ultimate = true`
+2. 해당 스탯 게이지가 **5/5 (FULL)**
+3. 위 조건의 스탯이 할당된 선택지 클릭
+
+### 발동 효과
+
+- 실제 주사위를 굴리지 않고 `rolled = 20`, `outcome = "Critical Success"` 고정
+- 게이지를 **0으로 리셋**
+- 유저 메시지에 다음 OOC 지시문 자동 추가:
+
+```
+* OOC: {{user}}의 🪓 STR 궁극기가 발동됩니다! 무조건 대성공입니다. STR 능력이 극한까지 발휘되는 극적인 장면을 연출하세요.
+```
+
+### 예시 흐름
+
+```
+[1턴] STR 선택지 선택 → Critical Failure → 게이지 STR: 0→2
+[2턴] STR 선택지 선택 → Narrow Failure  → 게이지 STR: 2→3
+[3턴] STR 선택지 선택 → Success         → 게이지 STR: 3→4
+[4턴] STR 선택지 선택 → Failure         → 게이지 STR: 4→5 (FULL)
+[5턴] STR 선택지 선택 → 🔥 궁극기 발동! outcome=Critical Success, 게이지 STR: 5→0
+```
+
+### UI 표시
+
+선택지 블록 하단에 각 스탯의 게이지가 표시됩니다:
+
+```
+🪓 STR [███░░] 3/5  🏃 DEX [█░░░░] 1/5  🛡️ CON [████░] 4/5
+🧠 INT [░░░░░] 0/5  👁️ WIS [██░░░] 2/5  💬 CHA [█████] 5/5
+```
+
+FULL 게이지 스탯: `🔥 CHA [█████] 5/5` (🔥 이모지로 표시)  
+FULL 게이지 버튼: CSS 클래스 `choicemodule-ult-ready` 추가 (BETA — 별도 CSS 테마에서 glow 효과 구현)
 
 ---
 

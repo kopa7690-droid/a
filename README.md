@@ -30,6 +30,7 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 | 🦥 지연 로딩 | 선택지를 필요할 때만 불러오는 Lazy Load 지원 |
 | 🗑️ 선택지 제거 | 불필요한 선택지를 숨기거나 제거 |
 | 🌐 NPC 관점 | 유저 또는 NPC 관점의 선택지 생성 지원 |
+| 🔥 궁극기 시스템 | 스탯별 게이지 충전 후 발동 — 무조건 대성공(Critical Success) 강제 (BETA) |
 
 ---
 
@@ -79,6 +80,7 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 | `toggle_ChoiceModule.korean` | boolean | 한국어 출력 모드 |
 | `toggle_ChoiceModule.noLorebook` | number | 1이면 LightBoard 로어북 참조 비활성 |
 | `toggle_lightboard.thoughts` | number | LightBoard 사고 단계 상세도 (3 미만이면 8단어 제한) |
+| `toggle_choicemodule_ultimate` | boolean | 궁극기(Ultimate) 시스템 활성화 여부 (BETA, 기본값 false) |
 
 ---
 
@@ -116,6 +118,59 @@ and performs probability/difficulty-based dice checks when a choice is selected.
 
 각 `<Suggestion>`에는 `stat={ STR|DEX|CON|INT|WIS|CHA }` 속성이 필수입니다.  
 5개 선택지에 사용할 스탯은 맥락에 맞게 선택하며, 사용하지 않는 1개 스탯은 상황에 따라 달라질 수 있습니다.
+
+---
+
+## 🔥 궁극기 시스템 (Ultimate System) — BETA
+
+> `toggle_choicemodule_ultimate = true`로 활성화합니다.
+
+### 개요
+
+스탯별 독립 **게이지**를 충전하여 FULL 상태에서 해당 스탯 선택지를 고르면 **무조건 대성공(Critical Success)**을 발동하는 시스템입니다.
+
+### 게이지 변수
+
+| 변수 (chatVar) | 설명 |
+|----------------|------|
+| `ChoiceModule.ult_STR` | 🪓 Strength 게이지 (0–5) |
+| `ChoiceModule.ult_DEX` | 🏃 Dexterity 게이지 (0–5) |
+| `ChoiceModule.ult_CON` | 🛡️ Constitution 게이지 (0–5) |
+| `ChoiceModule.ult_INT` | 🧠 Intelligence 게이지 (0–5) |
+| `ChoiceModule.ult_WIS` | 👁️ Wisdom 게이지 (0–5) |
+| `ChoiceModule.ult_CHA` | 💬 Charisma 게이지 (0–5) |
+
+### 충전 규칙
+
+| 상황 | 충전량 |
+|------|--------|
+| 스탯 선택지 선택 (일반 / Narrow) | +1 |
+| Critical Failure (크리 실패) | +2 |
+| Success / Critical Success | +1 |
+| 파티원 보조 성공 *(Phase 4 예정)* | 충전 없음 |
+| stat 정보 없는 구형 선택지 | 충전 없음 |
+
+### 발동 조건 및 효과
+
+- 해당 스탯 게이지가 **5/5 (FULL)** 상태에서 그 스탯 선택지 선택 시 궁극기 발동
+- **주사위 굴림 없이** `outcome = "Critical Success"`, `rolled = 20`으로 고정
+- 게이지를 **0으로 리셋**
+- 유저 메시지에 다음 OOC 지시문이 자동 삽입됨:
+
+```
+* OOC: {{user}}의 🪓 STR 궁극기가 발동됩니다! 무조건 대성공입니다. STR 능력이 극한까지 발휘되는 극적인 장면을 연출하세요.
+```
+
+### UI
+
+- 각 `<Choice>` 블록 하단에 스탯별 게이지 바 표시: `🪓 STR [███░░] 3/5`
+- FULL 게이지 스탯은 🔥, 일반은 스탯 이모지로 표시: `🔥 STR [█████] 5/5`
+- FULL 게이지 선택지 버튼에 CSS 강조 클래스 `choicemodule-ult-ready` 적용 (BETA)
+
+### 후방 호환
+
+- `toggle_choicemodule_ultimate`가 false/0이거나 설정되지 않은 경우 완전히 비활성 → 기존 동작 유지
+- `stat` 속성 없는 구형 선택지: 게이지 충전/발동 없음
 
 ---
 
