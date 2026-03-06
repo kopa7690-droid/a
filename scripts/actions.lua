@@ -109,9 +109,9 @@ end
 
 @@[[ Auto-judgment helpers — used when toggle_choicemodule_auto is enabled
   isAutoEnabled   : returns true if the auto mode global var is truthy
-  shouldAllyAssist: chatVar override > globalVar fallback for ally assist
-  getEffectiveAllyName: chatVar override > globalVar fallback for ally name
-  TENSION_MOD     : per-tension DC modifier added on top of diff_mod
+  shouldAllyAssist: chatVar only (no manual toggle fallback when Auto ON)
+  getEffectiveAllyName: chatVar only (no manual toggle fallback when Auto ON)
+  TENSION_MOD     : per-tension DC modifier (sole mod source when Auto ON)
 @@]]
 local function isAutoEnabled(t)
 	local v = getGlobalVar(t, "toggle_choicemodule_auto")
@@ -123,7 +123,7 @@ local function shouldAllyAssist(t)
 	if isAutoEnabled(t) then
 		local v = getChatVar(t, "ChoiceModule.auto_ally")
 		if v == "true" or v == "1" then return true end
-		if v == "false" or v == "0" then return false end
+		return false  -- chatVar 없어도 수동 토글 안 읽음, 기본값 false
 	end
 	return isAllyEnabled(t)
 end
@@ -132,6 +132,7 @@ local function getEffectiveAllyName(t)
 	if isAutoEnabled(t) then
 		local v = getChatVar(t, "ChoiceModule.auto_ally_name")
 		if v and v ~= "" then return v end
+		return "파티원"  -- chatVar 없어도 수동 토글 안 읽음, 기본값 "파티원"
 	end
 	return getAllyName(t)
 end
@@ -157,7 +158,7 @@ local function generateInstruction(allyName, userOutcome, finalOutcome, bonus)
 	end
 	local word = EFFECT_WORDS[math.min(bonus, 3)] or "보정"
 	return string.format(
-		"%s가 {{user}}의 %s를 보조하여 %s를 %s로 %s시킵니다. 유저의 행동을 서포트를 시도하는 묘사를 포함하세요.",
+		"%s가 {{user}}의 %s를 보조하여 %s를 %s로 %s시킵니다. 유저의 행동을 서포트하는 묘사를 포함하세요.",
 		allyName, userOutcome, userOutcome, finalOutcome, word)
 end
 
@@ -223,18 +224,23 @@ local actions = {
 					local auto = isAutoEnabled(cmc_parts[1])
 					local mod, minDC, maxDC
 					if auto then
-						mod   = tonumber(getChatVar(cmc_parts[1], "ChoiceModule.auto_diff_mod"))
 						minDC = tonumber(getChatVar(cmc_parts[1], "ChoiceModule.auto_dc_min"))
 						maxDC = tonumber(getChatVar(cmc_parts[1], "ChoiceModule.auto_dc_max"))
-						@@ Apply tension modifier on top if available
+						@@ tension만으로 mod 자동 계산 (DifficultyMod 제거됨)
 						local tension = getChatVar(cmc_parts[1], "ChoiceModule.auto_tension")
 						if tension and TENSION_MOD[tension] then
-							mod = (mod or 0) + TENSION_MOD[tension]
+							mod = TENSION_MOD[tension]
+						else
+							mod = 0
 						end
+						@@ Auto ON: 수동 토글로 폴백하지 않고 기본값 사용
+						minDC = minDC or 3
+						maxDC = maxDC or 18
+					else
+						mod   = tonumber(getGlobalVar(cmc_parts[1], "toggle_choicemodule_difficulty_mod")) or 0
+						minDC = tonumber(getGlobalVar(cmc_parts[1], "toggle_choicemodule_dc_min"))  or 3
+						maxDC = tonumber(getGlobalVar(cmc_parts[1], "toggle_choicemodule_dc_max"))  or 18
 					end
-					mod   = mod   or tonumber(getGlobalVar(cmc_parts[1], "toggle_choicemodule_difficulty_mod")) or 0
-					minDC = minDC or tonumber(getGlobalVar(cmc_parts[1], "toggle_choicemodule_dc_min"))  or 3
-					maxDC = maxDC or tonumber(getGlobalVar(cmc_parts[1], "toggle_choicemodule_dc_max"))  or 18
 					dc = math.max(minDC, math.min(maxDC, dc + mod))
 				end
 				local o, r
