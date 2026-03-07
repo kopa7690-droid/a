@@ -1,13 +1,27 @@
 <style>
-{{#if {{? {{getglobalvar::toggle_choicemodule_minimize}}!=0}}}}
+{{#if {{? {{getglobalvar::toggle_choicemodule_minimize}}!=0}}}
+
+/* ═══════════════════════════════════════════════
+   🎨 CHOICE MODULE — Modern Glassmorphism Edition
+   ═══════════════════════════════════════════════ */
 
 .choicemodule-wrapper {
-  background-color: color-mix(in srgb, var(--risu-theme-darkbg), #0000 50%);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--risu-theme-darkbg), #0000 40%),
+    color-mix(in srgb, var(--risu-theme-darkbg), #0000 60%)
+  );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 85%);
   border-radius: 1rem;
-  box-shadow: 0px 0px 0.25rem color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
+  box-shadow:
+    0 4px 16px color-mix(in srgb, var(--risu-theme-darkbg), #0000 30%),
+    inset 0 1px 0 color-mix(in srgb, var(--risu-theme-textcolor), #0000 90%);
   max-width: 10rem;
   min-height: 5rem;
   position: relative;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .choicemodule-wrapper:before {
@@ -19,6 +33,9 @@
   display: flex;
   left: 1.5rem;
   align-items: center;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 3px color-mix(in srgb, var(--risu-theme-darkbg), #0000 30%);
 }
 
 .choicemodule-wrapper .choicemodule-button {
@@ -30,7 +47,10 @@
 .choicemodule-wrapper:hover {
   max-width: 100%;
   box-shadow: none;
-  background-color: #0000;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-color: transparent;
 }
 
 .choicemodule-wrapper:hover:before {
@@ -45,11 +65,13 @@
 
 {{#if {{? {{getglobalvar::toggle_choicemodule_minimize}}=2}}}}
 
-
 .choicemodule-toggle:checked ~ .choicemodule-wrapper {
   max-width: 100%;
   box-shadow: none;
-  background-color: #0000;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-color: transparent;
   border-radius: 0;
   padding-top: 2rem;
   padding-bottom: .125rem;
@@ -71,38 +93,73 @@
   display: none;
 }
 
+/* ─── 선택지 버튼 ─── */
 .choicemodule-button {
   position: relative;
-  background-color: color-mix(in srgb, var(--risu-theme-darkbg), #0000 50%);
-  padding: 1rem;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--risu-theme-darkbg), #0000 35%),
+    color-mix(in srgb, var(--risu-theme-darkbg), #0000 55%)
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 1rem 1.25rem;
   text-align: left;
-  border: 0.125rem solid transparent;
-  border-radius: 1rem;
-  box-shadow: 0px 0px 0.25rem color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
-  transition: all 0.5s;
+  border: 1px solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 88%);
+  border-radius: 0.875rem;
+  box-shadow:
+    0 2px 12px color-mix(in srgb, var(--risu-theme-darkbg), #0000 40%),
+    inset 0 1px 0 color-mix(in srgb, var(--risu-theme-textcolor), #0000 92%);
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  overflow: visible;
 }
 
 .choicemodule-button:hover {
-  border: 0.125rem solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
-  animation: choicemodule-glow 4s linear infinite;
+  border-color: color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 24px color-mix(in srgb, var(--risu-theme-darkbg), #0000 20%),
+    0 0 0 1px color-mix(in srgb, var(--risu-theme-textcolor), #0000 80%);
+  animation: choicemodule-glow 3s ease-in-out infinite;
+}
+
+.choicemodule-button:active {
+  transform: translateY(0px);
+  transition: transform 0.1s;
 }
 
 @keyframes choicemodule-glow {
   0%, 100% {
-    box-shadow: 0 0 0.5rem var(--risu-theme-textcolor);
+    box-shadow:
+      0 8px 24px color-mix(in srgb, var(--risu-theme-darkbg), #0000 20%),
+      0 0 12px color-mix(in srgb, var(--risu-theme-textcolor), #0000 60%),
+      0 0 0 1px color-mix(in srgb, var(--risu-theme-textcolor), #0000 80%);
   }
   50% {
-    box-shadow: 0 0 0.5rem var(--risu-theme-darkbg);
+    box-shadow:
+      0 8px 24px color-mix(in srgb, var(--risu-theme-darkbg), #0000 20%),
+      0 0 20px color-mix(in srgb, var(--risu-theme-textcolor), #0000 70%),
+      0 0 0 1px color-mix(in srgb, var(--risu-theme-textcolor), #0000 70%);
   }
 }
 
+/* ─── 말풍선 (버블) ─── */
 .choicemodule-button .choicemodule-bubble {
   display: none;
   position: absolute;
-  background-color: var(--risu-theme-borderc);
-  padding: 1rem;
-  border-radius: 30px;
-  box-shadow: 0 0 0.25rem color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--risu-theme-borderc), #0000 10%),
+    var(--risu-theme-borderc)
+  );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 85%);
+  box-shadow:
+    0 8px 32px color-mix(in srgb, var(--risu-theme-darkbg), #0000 20%),
+    inset 0 1px 0 color-mix(in srgb, var(--risu-theme-textcolor), #0000 92%);
   transform-origin: top right;
   transform: translate(-4rem, 3rem);
   z-index: 1;
@@ -118,52 +175,55 @@
 
 .choicemodule-button:hover .choicemodule-bubble {
   display: block;
-  animation: choicemodule-fade 0.5s ease;
+  animation: choicemodule-fade 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 @keyframes choicemodule-fade {
   0% {
     opacity: 0;
+    transform: translate(-4rem, 3.5rem) scale(0.96);
   }
   100% {
     opacity: 1;
+    transform: translate(-4rem, 3rem) scale(1);
   }
 }
 
 .choicemodule-bubble:before,
 .choicemodule-bubble:after {
-	content: "";
-	border-radius: 50%;
-	display: block;
-	position: absolute;
-	background-color: var(--risu-theme-borderc);
+  content: "";
+  border-radius: 50%;
+  display: block;
+  position: absolute;
+  background-color: var(--risu-theme-borderc);
 }
 
 .choicemodule-bubble:after {
-	top: -20px;
-	left: 30px;
-	width: 15px;
-	height: 15px;
-	box-shadow:
-	15px -10px 0 -3px var(--risu-theme-borderc);
+  top: -20px;
+  left: 30px;
+  width: 15px;
+  height: 15px;
+  box-shadow: 15px -10px 0 -3px var(--risu-theme-borderc);
 }
 
+/* ─── 서클 버튼 ─── */
 .choicemodule-circle {
-	border-radius: 100%;
-	font-size: 20px;
-	margin-right: 40px;
+  border-radius: 100%;
+  font-size: 20px;
+  margin-right: 40px;
 }
 
 .choicemodule-circle .choicemodule-bubble {
-	transform: translate(-80px, -120px);
-	width: 200px;
+  transform: translate(-80px, -120px);
+  width: 200px;
 }
 
 .choicemodule-circle .choicemodule-bubble:after {
-	top: 65px;
-	box-shadow:	15px 10px 0 -3px var(--risu-theme-borderc);
+  top: 65px;
+  box-shadow: 15px 10px 0 -3px var(--risu-theme-borderc);
 }
 
+/* ─── 아이콘 라벨 ─── */
 .choicemodule-menu:before {
   content: "⚖️";
 }
@@ -172,19 +232,30 @@
   content: "🔗";
 }
 
+/* ─── 앵커 버튼 ─── */
 .choicemodule-anchor {
   position: absolute;
   right: -44px;
   padding: 0;
   padding-left: 8px;
-  border: 2px solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
-  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 70%);
+  border-radius: 0.5rem;
   box-shadow: none;
   width: 36px;
   height: 36px;
   align-items: center;
   justify-content: center;
   z-index: 2;
+  transition: all 0.25s ease;
+  background: color-mix(in srgb, var(--risu-theme-darkbg), #0000 50%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.choicemodule-anchor:hover {
+  border-color: color-mix(in srgb, var(--risu-theme-textcolor), #0000 40%);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--risu-theme-darkbg), #0000 30%);
+  transform: scale(1.05);
 }
 
 .choicemodule-anchor2 {
@@ -199,35 +270,50 @@
 }
 
 .choicemodule-anchor > svg {
-	height: 15px;
-	width: 15px;
+  height: 15px;
+  width: 15px;
+  transition: transform 0.2s ease;
+}
+
+.choicemodule-anchor:hover > svg {
+  transform: scale(1.1);
 }
 
 .choicemodule-anchor .choicemodule-bubble {
   top: 0.25em;
   left: -0.25em;
-	width: 180px;
+  width: 180px;
 }
 
+/* ─── 래퍼 (Lorebook) ─── */
 .choicemodule-wrapper-lb {
-	position: relative;
-	width: 100%;
+  position: relative;
+  width: 100%;
 }
 
 [data-id='lb-choicemodule'] .lb-opener {
-	background-color: color-mix(in srgb, var(--risu-theme-darkbg), #0000 50%);
-	border: 2px solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
-	box-shadow: 0px 0px .25rem color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
-	color: var(--FontColorQuote1);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--risu-theme-darkbg), #0000 40%),
+    color-mix(in srgb, var(--risu-theme-darkbg), #0000 60%)
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 75%);
+  box-shadow:
+    0 2px 12px color-mix(in srgb, var(--risu-theme-darkbg), #0000 40%),
+    inset 0 1px 0 color-mix(in srgb, var(--risu-theme-textcolor), #0000 92%);
+  color: var(--FontColorQuote1);
+  transition: all 0.3s ease;
 }
 
 [data-id='lb-choicemodule'] [open] .lb-opener {
-	border: 0.125rem solid transparent;
+  border: 1px solid transparent;
 }
 
 [data-id='lb-choicemodule'] .lb-lazyloader:hover {
-	border-radius: 8px;
-	animation: choicemodule-glow 4s linear infinite;
+  border-radius: 0.5rem;
+  animation: choicemodule-glow 3s ease-in-out infinite;
 }
 
 [data-id='lb-choicemodule'] .lb-collapsible {
@@ -235,58 +321,95 @@
 }
 
 [data-id='lb-choicemodule'] .lb-reroll {
-	background-color: color-mix(in srgb, var(--risu-theme-darkbg), #0000 50%);
-	border: 2px solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
+  background: color-mix(in srgb, var(--risu-theme-darkbg), #0000 40%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 75%);
+  transition: all 0.25s ease;
+  border-radius: 0.5rem;
 }
 
-/* 궁극기 게이지 바 */
+[data-id='lb-choicemodule'] .lb-reroll:hover {
+  border-color: color-mix(in srgb, var(--risu-theme-textcolor), #0000 40%);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--risu-theme-darkbg), #0000 30%);
+}
+
+/* ═══════════════════════════════════════════════
+   ⚡ 궁극기 (Ultimate) 시스템
+   ═══════════════════════════════════════════════ */
+
 .choicemodule-ult-gauge {
   padding: 0.5rem 1rem;
   font-size: 0.85em;
-  font-family: monospace;
-  opacity: 0.8;
+  font-family: 'Consolas', 'SF Mono', monospace;
+  opacity: 0.85;
+  letter-spacing: 0.03em;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--risu-theme-textcolor), #0000 70%);
 }
 
-/* 궁극기 발동 가능 선택지 글로우 */
 .choicemodule-ult-ready {
-  border-color: gold !important;
+  border-color: #ffd700 !important;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--risu-theme-darkbg), #0000 35%),
+    color-mix(in srgb, #ffd700, #0000 85%)
+  ) !important;
   animation: choicemodule-ult-glow 2s ease-in-out infinite !important;
 }
 
 @keyframes choicemodule-ult-glow {
   0%, 100% {
-    box-shadow: 0 0 0.5rem gold;
+    box-shadow:
+      0 0 8px rgba(255, 215, 0, 0.4),
+      0 0 16px rgba(255, 215, 0, 0.15),
+      inset 0 0 8px rgba(255, 215, 0, 0.05);
   }
   50% {
-    box-shadow: 0 0 1rem gold, 0 0 2rem rgba(255, 215, 0, 0.3);
+    box-shadow:
+      0 0 16px rgba(255, 215, 0, 0.6),
+      0 0 32px rgba(255, 215, 0, 0.25),
+      0 0 48px rgba(255, 215, 0, 0.1),
+      inset 0 0 12px rgba(255, 215, 0, 0.08);
   }
 }
 
-/* 파티원 보조 요약 블록 */
+/* ═══════════════════════════════════════════════
+   👥 파티원 보조 블록
+   ═══════════════════════════════════════════════ */
+
 .dicemodule-ally {
-  padding: 0.5rem;
+  padding: 0.625rem 0.75rem;
   margin-top: 0.5rem;
   font-size: 0.9em;
-  border-top: 1px solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 70%);
+  border-top: 1px solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 85%);
   opacity: 0.85;
+  transition: opacity 0.25s ease;
 }
 
-.dicemodule-table {
+.dicemodule-ally:hover {
+  opacity: 1;
+}
+
+/* ═══════════════════════════════════════════════
+   🎲 다이스 모듈 — 네온 글로우 에디션
+   ═══════════════════════════════════════════════ */
+
+dicemodule-table {
   display: inline-table;
   width: 450px;
 }
 
-.dicemodule-cube {
-    --dice-size: 100px;
-    --dice-half-size: calc(var(--dice-size) / 2);
-    --dice-double-size: calc(var(--dice-size) * -2);
-    --dice-1-10-size: calc(var(--dice-size) / -10);
-    position: relative;
-    width: var(--dice-size);
-    height: var(--dice-size);
-    transform-style: preserve-3d;
-    transition: all 2.5s linear;
-    cursor: pointer;
+dicemodule-cube {
+  --dice-size: 100px;
+  --dice-half-size: calc(var(--dice-size) / 2);
+  --dice-double-size: calc(var(--dice-size) * -2);
+  --dice-1-10-size: calc(var(--dice-size) / -10);
+  position: relative;
+  width: var(--dice-size);
+  height: var(--dice-size);
+  transform-style: preserve-3d;
+  transition: all 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  cursor: pointer;
 }
 
 @media (max-aspect-ratio: 1/1) {
@@ -298,57 +421,73 @@
   }
 }
 
-.dicemodule-cube:hover {
-    animation: dice-anim-rotate 2.5s infinite ease-out;
+dicemodule-cube:hover {
+  animation: dice-anim-rotate 2.5s infinite ease-out;
+  filter: drop-shadow(0 0 15px color-mix(in srgb, var(--risu-theme-borderc), #0000 30%));
 }
-.dicemodule-throw {
-    animation: dice-anim-throw 1s ease-in;
+
+dicemodule-throw {
+  animation: dice-anim-throw 1s ease-in;
 }
-.dicemodule-side {
-    position: absolute;
-    width: var(--dice-size);
-    height: var(--dice-size);
-    background: linear-gradient(to bottom, 
-    color-mix(in srgb, var(--risu-theme-darkbg), #0000 50%), 
-    color-mix(in srgb, var(--risu-theme-selected), #0000 25%), 
-    color-mix(in srgb, var(--risu-theme-darkbg), #0000 50%));
-    box-shadow: inset 0 0 10px 5px var(--risu-theme-borderc);
-    filter: drop-shadow(0 0 10px var(--risu-theme-borderc));
-    border-radius: calc(var(--dice-size) / 5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 2em;
-    color: var(--risu-theme-textcolor);
+
+dicemodule-side {
+  position: absolute;
+  width: var(--dice-size);
+  height: var(--dice-size);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--risu-theme-darkbg), #0000 30%),
+    color-mix(in srgb, var(--risu-theme-selected), #0000 20%),
+    color-mix(in srgb, var(--risu-theme-darkbg), #0000 40%)
+  );
+  box-shadow:
+    inset 0 0 12px 4px color-mix(in srgb, var(--risu-theme-borderc), #0000 20%),
+    inset 0 2px 0 color-mix(in srgb, var(--risu-theme-textcolor), #0000 90%);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--risu-theme-borderc), #0000 40%));
+  border-radius: calc(var(--dice-size) / 5);
+  border: 1px solid color-mix(in srgb, var(--risu-theme-textcolor), #0000 85%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2em;
+  font-weight: 700;
+  color: var(--risu-theme-textcolor);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--risu-theme-textcolor), #0000 50%);
 }
-.dicemodule-side1 { transform: rotateY(0deg) translateZ(var(--dice-half-size)); }
-.dicemodule-side2 { transform: rotateY(90deg) translateZ(var(--dice-half-size)); }
-.dicemodule-side3 { transform: rotateY(180deg) translateZ(var(--dice-half-size)); }
-.dicemodule-side4 { transform: rotateY(-90deg) translateZ(var(--dice-half-size)); }
-.dicemodule-side5 { transform: rotateX(90deg) translateZ(var(--dice-half-size)); }
-.dicemodule-side6 { transform: rotateX(-90deg) translateZ(var(--dice-half-size)); }
+
+dicemodule-side1 { transform: rotateY(0deg) translateZ(var(--dice-half-size)); }
+dicemodule-side2 { transform: rotateY(90deg) translateZ(var(--dice-half-size)); }
+dicemodule-side3 { transform: rotateY(180deg) translateZ(var(--dice-half-size)); }
+dicemodule-side4 { transform: rotateY(-90deg) translateZ(var(--dice-half-size)); }
+dicemodule-side5 { transform: rotateX(90deg) translateZ(var(--dice-half-size)); }
+dicemodule-side6 { transform: rotateX(-90deg) translateZ(var(--dice-half-size)); }
 
 {{settempvar::maxroll::20}}
-.dicemodule-side2:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
-.dicemodule-side3:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
-.dicemodule-side4:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
-.dicemodule-side5:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
-.dicemodule-side6:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
+dicemodule-side2:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
+dicemodule-side3:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
+dicemodule-side4:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
+dicemodule-side5:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
+dicemodule-side6:before { content: "{{roll::{{gettempvar::maxroll}}}}"; }
 
-.dicemodule-cover {
-  background: radial-gradient(circle at center,
-  transparent 0%,
-  var(--risu-theme-borderc) 65%,
-  transparent 90%);
+dicemodule-cover {
+  background: radial-gradient(
+    circle at center,
+    transparent 0%,
+    color-mix(in srgb, var(--risu-theme-borderc), #0000 20%) 55%,
+    transparent 85%
+  );
   border-radius: 0px;
+  border: none;
   transform: translateZ(0px);
   box-shadow: none;
   filter: none;
 }
-.dicemodule-cover-x {
+
+dicemodule-cover-x {
   transform: rotateY(90deg);
 }
-.dicemodule-cover-z {
+
+dicemodule-cover-z {
   transform: rotateX(90deg);
 }
 
@@ -363,18 +502,22 @@
   0% {
     z-index: 1;
     transform: translateY(0) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+    filter: drop-shadow(0 0 0px transparent);
   }
   40% {
     transform: translateY(var(--dice-double-size)) rotateX(720deg) rotateY(360deg) rotateZ(180deg);
+    filter: drop-shadow(0 0 20px var(--risu-theme-borderc));
   }
   80% {
     transform: translateY(0) rotateX(1440deg) rotateY(720deg) rotateZ(320deg);
+    filter: drop-shadow(0 0 10px var(--risu-theme-borderc));
   }
   90% {
     transform: translateY(var(--dice-1-10-size)) rotateX(1440deg) rotateY(720deg) rotateZ(340deg);
   }
   100% {
     transform: translateY(0) rotateX(1440deg) rotateY(720deg) rotateZ(360deg);
+    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--risu-theme-borderc), #0000 40%));
   }
 }
 </style>
