@@ -375,21 +375,25 @@ text={ `%s` }
 		local nm = getChat(cmc_parts[1], cl @ 1).data
 		local cp = "(<Choice>.@</Choice>)"
 		local nc = nm:match(cp)
+		@@ Fallback: extract Choice block even when the closing </Choice> tag is absent
+		if not nc then
+			nc = nm:match("(<[cC]hoice>.+</[sS]uggestion>)%s*")
+		end
+		if not nc then return end
 		if cl > 2 then
 			local pm = getChat(cmc_parts[1], cl @ 3).data
 			pm = pm:gsub("(<Thoughts>.@</Thoughts>)", "")
-			local pc = pm:match(cp)
-			if not pc then
-				pc = (pm .. "\n</Choice>"):match(cp)
+			local nc_safe = nc:gsub("%%", "%%%%")
+			@@ First try: replace a properly closed <Choice>...</Choice> block
+			local mm, r = pm:gsub(cp, nc_safe)
+			if r == 0 then
+				@@ Fallback: replace an unclosed <Choice>...(last </Suggestion>) block
+				mm, r = pm:gsub("<[cC]hoice>.*</[sS]uggestion>%s*", nc_safe)
 			end
-			local mm = (function()
-				if pc then
-					nc = nc:gsub("%%", "%%%%")
-					return pm:gsub(cp, nc)
-				else
-					return pm .. "\n\n" .. nc
-				end
-			end)()
+			if r == 0 then
+				@@ No existing Choice block found in the previous message: just append
+				mm = pm .. "\n\n" .. nc
+			end
 			cutChat(cmc_parts[1], 0, cl @ 3)
 			addChat(cmc_parts[1], "char", mm)
 		else
