@@ -1,5 +1,3 @@
----
-
 =⚖️ 선택지 ⚙️=group
 ChoiceModule.mode=⚖️ 모듈 활성화
 ChoiceModule.korean=⚖️ 한국어 출력
@@ -18,13 +16,6 @@ choicemodule_ally_name=⚖️⚙️ 파티원 이름=text
 =⚖️ 표시 옵션=divider
 choicemodule_menu=⚖️ 메뉴 버튼 표시
 choicemodule_hidden=⚖️ 주사위 결과 숨김
-=이전 판정 결과를 접어서 숨김=caption
 choicemodule_minimize=⚖️ 최소화 모드=select=Off,Hover,Click
 =Off: 항상 표시 / Hover: 마우스 올리면 / Click: 클릭하면=caption
-=⚖️ LightBoard=divider
-lightboard.thoughts=⚖️ LB 사고 단계=select=0,1,2,3,4,5
-=0: 비활성 / 1~2: 간결(8단어 제한) / 3~5: 상세(제한 없음)=caption
-=↑ 품질 향상, 토큰 증가=caption
 ==groupEnd
-
----
