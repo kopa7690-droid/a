@@ -132,7 +132,7 @@ local OUTCOME_NOTES = {
 local function generateOutcomeNote(outcome)
 	local msg = OUTCOME_NOTES[outcome]
 	if not msg then return "" end
-	return string.format("\n\n* (OOC: %s)", msg)
+	return string.format("\n\n<diceresult>OOC: %s</diceresult>", msg)
 end
 
 local actions = {
@@ -212,7 +212,7 @@ local actions = {
 				if ult_fired then
 					local emo = (stat and ULT_EMOJIS[stat]) or ""
 					ult_note = string.format(
-						"\n\n* OOC: {{user}}의 %s %s 궁극기가 발동됩니다! 무조건 대성공입니다. %s 능력이 극한까지 발휘되는 극적인 장면을 연출하세요.",
+						"\n\n<diceresult>OOC: {{user}}의 %s %s 궁극기가 발동됩니다! 무조건 대성공입니다. %s 능력이 극한까지 발휘되는 극적인 장면을 연출하세요.</diceresult>",
 						emo, stat, stat)
 				end
 				@@ Ally assist (보조 판정): always active when ultimate did not fire
@@ -241,7 +241,7 @@ local actions = {
 				local pity_note = ""
 				if pity_bonus > 0 then
 					pity_note = string.format(
-						"\n\n* (OOC: 연속된 실패로, 이번 판정엔 +%d 보정이 적용되었습니다.)",
+						"\n\n<diceresult>OOC: 연속된 실패로, 이번 판정엔 +%d 보정이 적용되었습니다.</diceresult>",
 						pity_bonus)
 				end
 				@@ Build outcome OOC note based on final_o
@@ -276,7 +276,7 @@ ult_stat=%s]], stat)
 				um = um .. "\n?>"
 				if ally_o then
 					local bonus = ASSIST_BONUS[ally_o] or 0
-					um = um .. string.format("\n\n* (OOC: %s)", generateInstruction(ally_name, o, final_o, bonus))
+					um = um .. string.format("\n\n<party>OOC: %s</party>", generateInstruction(ally_name, o, final_o, bonus))
 				end
 				um = um .. ult_note .. pity_note .. narrow_note
 			end
@@ -289,7 +289,7 @@ text={ `%s` }
 			if ult_fired then
 				local emo = (stat and ULT_EMOJIS[stat]) or ""
 				um = um .. string.format(
-					"\n\n* OOC: {{user}}의 %s %s 궁극기가 발동됩니다! 무조건 대성공입니다. %s 능력이 극한까지 발휘되는 극적인 장면을 연출하세요.",
+					"\n\n<diceresult>OOC: {{user}}의 %s %s 궁극기가 발동됩니다! 무조건 대성공입니다. %s 능력이 극한까지 발휘되는 극적인 장면을 연출하세요.</diceresult>",
 					emo, stat, stat)
 			end
 		else
@@ -297,7 +297,7 @@ text={ `%s` }
 			if ult_fired then
 				local emo = (stat and ULT_EMOJIS[stat]) or ""
 				um = um .. string.format(
-					"\n\n* OOC: {{user}}의 %s %s 궁극기가 발동됩니다! 무조건 대성공입니다. %s 능력이 극한까지 발휘되는 극적인 장면을 연출하세요.",
+					"\n\n<diceresult>OOC: {{user}}의 %s %s 궁극기가 발동됩니다! 무조건 대성공입니다. %s 능력이 극한까지 발휘되는 극적인 장면을 연출하세요.</diceresult>",
 					emo, stat, stat)
 			else
 				chargeGauge(cmc_parts[1], stat, nil)
@@ -487,10 +487,12 @@ final outcome={ `%s` }]], ally_name, ally_r,
 
 		@@ Strip old OOC notes (instructions / outcome) left from previous op or rr
 		cd = cd:gsub("\n\n%* %(OOC:[^\n]*%)", "")
+		cd = cd:gsub("\n\n<party>OOC:.@</party>", "")
+		cd = cd:gsub("\n\n<diceresult>OOC:.@</diceresult>", "")
 		@@ Re@add instructions OOC (ally assist, final outcome basis)
 		if ally_o then
 			local bonus = ASSIST_BONUS[ally_o] or 0
-			cd = cd .. string.format("\n\n* (OOC: %s)", generateInstruction(ally_name, new_o, final_o, bonus))
+			cd = cd .. string.format("\n\n<party>OOC: %s</party>", generateInstruction(ally_name, new_o, final_o, bonus))
 		end
 		@@ Re@add outcome OOC based on final_o
 		cd = cd .. generateOutcomeNote(final_o)
