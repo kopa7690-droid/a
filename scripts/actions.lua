@@ -41,7 +41,7 @@ local ASSIST_BONUS = {
   Each stat has an independent gauge stored as a chatVar.
   Key format : ChoiceModule.ult_STR, ChoiceModule.ult_DEX, …
   Max gauge  : ULT_MAX (default 5)
-  Charging   : +1 per stat use; +2 on Critical Failure (pity bonus)
+  Charging   : +1 per successful outcome (Critical Success / Success / Narrow Success) via user input only
   Trigger    : gauge >= ULT_MAX → outcome forced to Critical Success, gauge reset
   Always active (no toggle required)
 @@]]
@@ -55,6 +55,8 @@ local ULT_EMOJIS   = {STR="🪓", DEX="🏃", CON="🛡️", INT="🧠", WIS="�
   Trigger : failStreak >= 3 → add random bonus (+1~+5, D20 scale) to the next roll
   Reset   : Critical Success, Success, or Narrow Success resets failStreak to 0
   OOC     : When pity fires, an OOC note is automatically appended to the user message.
+  Note    : failStreak is updated ONLY on user-input rolls (op action). Rerolls (rr) do
+            NOT modify failStreak so the correction value cannot grow on re-rolls.
 @@]]
 local FAIL_STREAK_KEY = "ChoiceModule.failStreak"
 
@@ -69,8 +71,10 @@ end
 
 local function chargeGauge(t, stat, outcome)
 	if not stat or stat == "" then return end
-	local amount = (outcome == "Critical Failure") and 2 or 1
-	setUltGauge(t, stat, getUltGauge(t, stat) + amount)
+	@@ Only charge on successful outcomes via user input; failures do not count toward ultimate
+	if outcome == "Critical Success" or outcome == "Success" or outcome == "Narrow Success" then
+		setUltGauge(t, stat, getUltGauge(t, stat) + 1)
+	end
 end
 
 local function tryUltimate(t, stat)
@@ -438,14 +442,6 @@ text={ `%s` }
 				final_o = LEVEL_NAME[math.min(user_level + bonus, 5)] or new_o
 			end
 			@@ 보조 실패해도 ally_o, ally_r 유지
-		end
-
-		@@ Update fail streak (same logic as op action)
-		local fail_streak = tonumber(getChatVar(cmc_parts[1], FAIL_STREAK_KEY)) or 0
-		if final_o == "Critical Success" or final_o == "Success" or final_o == "Narrow Success" then
-			setChatVar(cmc_parts[1], FAIL_STREAK_KEY, "0")
-		elseif final_o == "Failure" or final_o == "Critical Failure" or final_o == "Narrow Failure" then
-			setChatVar(cmc_parts[1], FAIL_STREAK_KEY, tostring(fail_streak + 1))
 		end
 
 		@@ Update rolled in block 1 (handle new {{user}} prefix and legacy plain format)
