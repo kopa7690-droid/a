@@ -6,14 +6,13 @@
 |------|---|
 | **name** | `🗑️ Request: Strip Party` |
 | **type** | `editprocess` |
-| **ableFlag** | `{{getglobalvar::toggle_choicemodule_noparty}}` |
 
 ---
 
 ## 패턴 (Pattern)
 
 ```regex
-\s*<party>OOC:.*?</party>
+\s*<party>(OOC:[^\n]*)</party>\s*
 ```
 
 **플래그**: `gs`
@@ -22,7 +21,7 @@
 
 ## 치환 (Replace)
 
-(빈 문자열)
+{{getglobalvar::toggle_choicemodule_party}}<party>OOC:$1</party>{{/if}}
 
 ---
 
