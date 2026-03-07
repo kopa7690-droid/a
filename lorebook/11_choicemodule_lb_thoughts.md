@@ -13,9 +13,6 @@
 
 ```
 Think step-by-step before final submission. Keep each step concise.
-{{#if {{? {{getglobalvar::toggle_lightboard.thoughts}} < 3 }} }}
-Maximum 8 words per step, excluding step labels.
-{{/if}}
 
 Step:
 1. Context: (Understand current context)
