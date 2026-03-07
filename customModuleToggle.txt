@@ -11,6 +11,8 @@ choicemodule_perspective=⚖️ NPC 관점 선택지
 =ON: 유저+NPC 모두 / OFF: 유저만=caption
 choicemodule_diversity=⚖️ 다양성 강조 모드
 choicemodule_proactivity=⚖️ 능동적 제안 모드
+=⚖️ 파티원 보조=divider
+choicemodule_noparty=⚖️ 파티 보조 전원
 choicemodule_ally_name=⚖️⚙️ 파티원 이름=text
 =보조 캐릭터 이름. 비우면 "파티원"=caption
 =⚖️ 표시 옵션=divider
